@@ -6,10 +6,12 @@
     return New-PSSession -ConnectionUri $targetMachine -Credential $credential –SessionOption $SessionOptions
 }
 
-function Ready-DeploymentEnvironment([string]$targetMachineHostName, [string]$targetMachineUserName, [string]$targetMachinePassword){
-    $session = Create-RemoteSession $targetMachineHostName $targetMachineUserName $targetMachinePassword
+function Ready-DeploymentEnvironment([HastTable]$deploymentVariables){
+    $session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
     Invoke-Command -Session $session -ScriptBlock{ 
+        $ErrorActionPreference = "Stop"
         $deploymentToolsPath = "c:\DeploymentTools"
+        $onDeploymentVariables = $Using:deploymentVariables
         
         if((Test-Path $deploymentToolsPath) -ne $true){
             New-Item $deploymentToolsPath -ItemType Directory
@@ -31,42 +33,27 @@ function Ready-DeploymentEnvironment([string]$targetMachineHostName, [string]$ta
 
         $userRights = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/UserRights.ps1"
         $utility = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/Utility.ps1"
+        $gclComponents = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/GlobalContentLibrary-Components.ps1"
 
         DownloadFile -uri $userRights -destinationDirectory $deploymentToolsPath
         DownloadFile -uri $utility -destinationDirectory $deploymentToolsPath
+        DownloadFile -uri $gclComponents -destinationDirectory $deploymentToolsPath
     }
 }
 
-function Ready-TargetEnvironment([string]$targetMachineHostName, [string]$targetMachineUserName, [string]$targetMachinePassword, [string]$targetVersion){
+function Ready-TargetEnvironment([HastTable]$deploymentVariables){
     $session = Create-RemoteSession $targetMachineHostName $targetMachineUserName $targetMachinePassword
     Invoke-Command -Session $session -ScriptBlock{ 
-        $onTargetVersion = $Using:targetVersion
+        $ErrorActionPreference = "Stop"
+        $onDeploymentVariables = $Using:deploymentVariables
 
         $deploymentToolsPath = "c:\DeploymentTools"
         
         Import-Module "$deploymentToolsPath\Utility.ps1"
+        Import-Module "$deploymentToolsPath\GlobalContentLibrary-Components.ps1"
 
         Get-PowerShellVersion
 
-        $commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
-        $platformHostCpexData = "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
-        if((Test-Path $platformHostCpexData) -ne $true){
-            New-Item $platformHostCpexData -ItemType Directory
-        }
-    
-        $gclRoot = "c:\GCLRoot"
-        $gclTarget = "$gclRoot\$onTargetVersion"
-
-        if((Test-Path $gclRoot) -ne $true){
-            New-Item $gclRoot -type directory
-        }else{
-            Write-Output "$gclRoot Exists"
-        }
-
-        if((Test-Path $gclTarget) -ne $true){
-            New-Item $gclTarget -type directory
-        }else{
-            Write-Output "$gclTarget Exists"
-        }
+        Create-DestinationDirectories -root "c:\GCLRoot" -targetVersion $onDeploymentVariables.targetVersion
     }
 }
