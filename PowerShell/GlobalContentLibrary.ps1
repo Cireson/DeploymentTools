@@ -1,6 +1,9 @@
 ﻿Param(
+    [Parameter(Mandatory=$True,Position=1)]
     [string]$targetMachineHostName,
+    [Parameter(Mandatory=$True,Position=2)]
     [string]$targetMachineUserName,
+    [Parameter(Mandatory=$True,Position=3)]
     [string]$targetMachinePassword
 )
 
