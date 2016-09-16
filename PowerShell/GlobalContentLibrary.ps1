@@ -37,13 +37,36 @@ function Ready-DeploymentEnvironment([string]$targetMachineHostName, [string]$ta
     }
 }
 
-function Ready-TargetEnvironment([string]$targetMachineHostName, [string]$targetMachineUserName, [string]$targetMachinePassword){
+function Ready-TargetEnvironment([string]$targetMachineHostName, [string]$targetMachineUserName, [string]$targetMachinePassword, [string]$targetVersion){
     $session = Create-RemoteSession $targetMachineHostName $targetMachineUserName $targetMachinePassword
     Invoke-Command -Session $session -ScriptBlock{ 
+        $onTargetVersion = $Using:targetVersion
+
         $deploymentToolsPath = "c:\DeploymentTools"
         
         Import-Module "$deploymentToolsPath\Utility.ps1"
 
         Get-PowerShellVersion
+
+        $commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
+        $platformHostCpexData = "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
+        if((Test-Path $platformHostCpexData) -ne $true){
+            New-Item $platformHostCpexData -ItemType Directory
+        }
+    
+        $gclRoot = "c:\GCLRoot"
+        $gclTarget = "$gclRoot\$onTargetVersion"
+
+        if((Test-Path $gclRoot) -ne $true){
+            New-Item $gclRoot -type directory
+        }else{
+            Write-Output "$gclRoot Exists"
+        }
+
+        if((Test-Path $gclTarget) -ne $true){
+            New-Item $gclTarget -type directory
+        }else{
+            Write-Output "$gclTarget Exists"
+        }
     }
 }
