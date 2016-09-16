@@ -1,17 +1,4 @@
-﻿Param(
-    [Parameter(Mandatory=$True,Position=1)]
-    [string]$targetMachineHostName,
-    [Parameter(Mandatory=$True,Position=2)]
-    [string]$targetMachineUserName,
-    [Parameter(Mandatory=$True,Position=3)]
-    [string]$targetMachinePassword
-)
-
-"targetMachineHostName: $targetMachineHostName"
-"targetMachineUserName: $targetMachineUserName"
-"targetMachinePassword: $targetMachinePassword"
-
-function CreateRemoteSession($machineHostName, $machineUserName, $machinePassword){
+﻿function Create-RemoteSession($machineHostName, $machineUserName, $machinePassword){
     $password = ConvertTo-SecureString –String $machinePassword –AsPlainText -Force
     $credential = New-Object –TypeName "System.Management.Automation.PSCredential" –ArgumentList $machineUserName, $password
     $SessionOptions = New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck
@@ -19,25 +6,26 @@ function CreateRemoteSession($machineHostName, $machineUserName, $machinePasswor
     return New-PSSession -ConnectionUri $targetMachine -Credential $credential –SessionOption $SessionOptions
 }
 
-$session = CreateRemoteSession $targetMachineHostName $targetMachineUserName $targetMachinePassword
-
-Invoke-Command -Session $session -ScriptBlock{ 
-    $deploymentToolsPath = "c:\DeploymentTools"
-    if((Test-Path $deploymentToolsPath) -ne $true){
-    New-Item $deploymentToolsPath -ItemType Directory
-    }
+function Ready-DeploymentEnvironment([string]$targetMachineHostName, [string]$targetMachineUserName, [string]$targetMachinePassword){
+    $session = Create-RemoteSession $targetMachineHostName $targetMachineUserName $targetMachinePassword
+    Invoke-Command -Session $session -ScriptBlock{ 
+        $deploymentToolsPath = "c:\DeploymentTools"
+        if((Test-Path $deploymentToolsPath) -ne $true){
+        New-Item $deploymentToolsPath -ItemType Directory
+        }
   
-    function DownloadFile([System.Uri]$uri, $destinationDirectory){
-        $fileName = $uri.Segments[$uri.Segments.Count-1]
-        $destinationFile = Join-Path $destinationDirectory $fileName
+        function DownloadFile([System.Uri]$uri, $destinationDirectory){
+            $fileName = $uri.Segments[$uri.Segments.Count-1]
+            $destinationFile = Join-Path $destinationDirectory $fileName
 
-        "Downloading $uri to $destinationFile"
+            "Downloading $uri to $destinationFile"
 
-        $webclient = New-Object System.Net.WebClient
-        $webclient.DownloadFile($uri,$destinationFile)
+            $webclient = New-Object System.Net.WebClient
+            $webclient.DownloadFile($uri,$destinationFile)
+        }
+
+        $userRights = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/UserRights.ps1"
+
+        DownloadFile -uri $userRights -destinationDirectory $deploymentToolsPath
     }
-
-    $userRights = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/UserRights.ps1"
-
-    DownloadFile -uri $userRights -destinationDirectory $deploymentToolsPath
 }
