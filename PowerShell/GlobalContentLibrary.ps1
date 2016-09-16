@@ -6,7 +6,7 @@
     return New-PSSession -ConnectionUri $targetMachine -Credential $credential –SessionOption $SessionOptions
 }
 
-function Ready-DeploymentEnvironment([HastTable]$deploymentVariables){
+function Ready-DeploymentEnvironment([hashtable]$deploymentVariables){
     $session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
     Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
@@ -41,7 +41,7 @@ function Ready-DeploymentEnvironment([HastTable]$deploymentVariables){
     }
 }
 
-function Ready-TargetEnvironment([HastTable]$deploymentVariables){
+function Ready-TargetEnvironment([hashtable]$deploymentVariables){
     $session = Create-RemoteSession $targetMachineHostName $targetMachineUserName $targetMachinePassword
     Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
