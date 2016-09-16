@@ -42,7 +42,7 @@ function Ready-DeploymentEnvironment([hashtable]$deploymentVariables){
 }
 
 function Ready-TargetEnvironment([hashtable]$deploymentVariables){
-    $session = Create-RemoteSession $targetMachineHostName $targetMachineUserName $targetMachinePassword
+    $session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
     Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
         $onDeploymentVariables = $Using:deploymentVariables
