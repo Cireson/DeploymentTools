@@ -1,3 +1,5 @@
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
 function Download-File([System.Uri]$uri, $destinationDirectory){
     $fileName = $uri.Segments[$uri.Segments.Count-1]
     $destinationFile = Join-Path $destinationDirectory $fileName

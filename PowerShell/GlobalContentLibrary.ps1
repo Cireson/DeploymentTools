@@ -48,6 +48,7 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         $onDeploymentVariables = $Using:deploymentVariables
 
         $deploymentToolsPath = "c:\DeploymentTools"
+        $rootDirectory = "c:\GCLRoot"
         
         Import-Module "$deploymentToolsPath\Utility.ps1"
         Import-Module "$deploymentToolsPath\UserRights.ps1"
@@ -55,9 +56,13 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
 
         Get-PowerShellVersion
 
-        Create-DestinationDirectories -root "c:\GCLRoot" -targetVersion $onDeploymentVariables.targetVersion
+        Create-DestinationDirectories -root $rootDirectory -targetVersion $onDeploymentVariables.targetVersion
 
-        Create-ContainedDatabaseUser -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlAdministratorUserName -sqlPassword $onDeploymentVariables.azureSqlAdministratorPassword -sqlServiceUserName $onDeploymentVariables.azureSqlUserName -sqlServicePassword $onDeploymentVariables.azureSqlUserPassword
+        $adminConnectionString = Create-PlatformConnectionString -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlAdministratorUserName -sqlPassword $onDeploymentVariables.azureSqlAdministratorPassword
+        $connectionString = Create-PlatformConnectionString -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlUserName -sqlPassword $onDeploymentVariables.azureSqlUserPassword
+        $targetDirectory = Create-TargetDirectory $rootDirectory $onDeploymentVariables.targetVersion
+
+        Create-ContainedDatabaseUser -connectionString $adminConnectionString -sqlServiceUserName $onDeploymentVariables.azureSqlUserName -sqlServicePassword $onDeploymentVariables.azureSqlUserPassword
 
         Remove-RunningService -serviceName "Platform_GCL"
 
@@ -65,5 +70,9 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         Create-InboundFirewallRule "Https 443" "443"
 
         Create-ServiceUser -serviceUserName $onDeploymentVariables.serviceUserName -servicePassword $onDeploymentVariables.serviceUserPassword
+
+        Download-Platform $rootDirectory $onDeploymentVariables.platformVersion $targetDirectory
+
+        Update-PlatformConfig -targetDirectory $targetDirectory -connectionString $connectionString
     }
 }
