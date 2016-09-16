@@ -57,7 +57,7 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
 
         Create-DestinationDirectories -root "c:\GCLRoot" -targetVersion $onDeploymentVariables.targetVersion
 
-        Create-ContainedDatabaseUser -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlAdministratorUserName -sqlPassword $onDeploymentVariables.azureSqlAdministratorPassword -sqlServiceUserName $onDeploymentVariables.azureSqlUserName -sqlServicePassword $onDeploymentVariables.azureSqlPassword
+        Create-ContainedDatabaseUser -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlAdministratorUserName -sqlPassword $onDeploymentVariables.azureSqlAdministratorPassword -sqlServiceUserName $onDeploymentVariables.azureSqlUserName -sqlServicePassword $onDeploymentVariables.azureSqlUserPassword
 
         Remove-RunningService -serviceName "Platform_GCL"
 
