@@ -50,6 +50,7 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         $deploymentToolsPath = "c:\DeploymentTools"
         
         Import-Module "$deploymentToolsPath\Utility.ps1"
+        Import-Module "$deploymentToolsPath\UserRights.ps1"
         Import-Module "$deploymentToolsPath\GlobalContentLibrary-Components.ps1"
 
         Get-PowerShellVersion
@@ -59,5 +60,10 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         Create-ContainedDatabaseUser -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlAdministratorUserName -sqlPassword $onDeploymentVariables.azureSqlAdministratorPassword -sqlServiceUserName $onDeploymentVariables.azureSqlUserName -sqlServicePassword $onDeploymentVariables.azureSqlPassword
 
         Remove-RunningService -serviceName "Platform_GCL"
+
+        Create-InboundFirewallRule "Http 80" "80"
+        Create-InboundFirewallRule "Https 443" "443"
+
+        Create-ServiceUser -serviceUserName $onDeploymentVariables.serviceUserName -servicePassword $onDeploymentVariables.servicePassword
     }
 }

@@ -82,3 +82,42 @@ function Remove-RunningService([string]$serviceName){
         "********$serviceName not Found********"
     }
 }
+
+
+function Create-InboundFirewallRule($displayName, $port){
+    $rule = Get-NetFirewallRule | Where-Object {$_.DisplayName -eq $displayName}
+    if($rule -eq $null){
+        New-NetFirewallRule -DisplayName $displayName -Direction Inbound -Action Allow -Protocol "TCP" -LocalPort $port
+        "$displayName Rule Created"
+    }else{
+        Set-NetFirewallRule -DisplayName $displayName -Direction Inbound -Action Allow -Protocol "TCP" -LocalPort $port
+        "$displayName Rule Already Exists, Updated"
+    }
+}
+
+function AddUserToGroup([string]$groupName,[string]$user)
+{
+    $Group = [ADSI]"WinNT://localhost/$groupName,group"   
+    $Group.Add("WinNT://$user,user")
+} 
+
+function Create-ServiceUser($serviceUserName, $servicePassword){
+  $user = Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "LocalAccount='$True'" | Where-Object { $_.Name -eq $serviceUserName}
+  if($user -eq $null){
+    "Creating User $serviceUserName($servicePassword)"
+    NET USER $serviceUserName $servicePassword /ADD
+  }else{
+    "User $serviceUserName Already Exists"
+  }
+
+  Grant-UserRight $serviceUserName SeServiceLogonRight
+
+  $group = get-wmiobject win32_group -filter "name='Administrators'"
+  $user = $group.GetRelated("win32_useraccount") | Where-Object { $_.Name -eq $serviceUserName}
+  if($user -eq $null){
+    AddUserToGroup -groupName "Administrators" -user $serviceUserName
+    "----Added $serviceUserName to Administrators Group----"
+  }else{
+    "----$serviceUserName Already a Member of Administrators Group----"
+  }
+}
