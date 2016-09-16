@@ -71,7 +71,7 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
 
         Create-ServiceUser -serviceUserName $onDeploymentVariables.serviceUserName -servicePassword $onDeploymentVariables.serviceUserPassword
 
-        Download-Platform $rootDirectory $onDeploymentVariables.platformVersion $targetDirectory
+        Download-Platform -baseDirectory $rootDirectory -platformVersion $onDeploymentVariables.platformVersion -targetDirectory $targetDirectory
 
         Update-PlatformConfig -targetDirectory $targetDirectory -connectionString $connectionString
     }
