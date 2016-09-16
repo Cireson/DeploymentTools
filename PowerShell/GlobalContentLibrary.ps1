@@ -55,5 +55,7 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         Get-PowerShellVersion
 
         Create-DestinationDirectories -root "c:\GCLRoot" -targetVersion $onDeploymentVariables.targetVersion
+
+        Create-ContainedDatabseUser $deploymentVariables.azureSqlServerName $deploymentVariables.azureSqlDatabase $deploymentVariables.azureSqlAdministratorUserName $deploymentVariables.azureSqlAdministratorPassword $deploymentVariables.azureSqlUserName $deploymentVariables.azureSqlPassword
     }
 }
