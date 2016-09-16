@@ -64,6 +64,6 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         Create-InboundFirewallRule "Http 80" "80"
         Create-InboundFirewallRule "Https 443" "443"
 
-        Create-ServiceUser -serviceUserName $onDeploymentVariables.serviceUserName -servicePassword $onDeploymentVariables.servicePassword
+        Create-ServiceUser -serviceUserName $onDeploymentVariables.serviceUserName -servicePassword $onDeploymentVariables.serviceUserPassword
     }
 }
