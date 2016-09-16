@@ -128,10 +128,10 @@ function Create-ServiceUser($serviceUserName, $servicePassword){
 function Create-TargetDirectory($rootDirectory, $targetVersion){
     $targetDirectory = "$rootDirectory\$targetVersion"
     if((Test-Path $targetDirectory) -ne $true){
-        New-Item $targetDirectory -type directory
-        "Created $targetDirectory"    
+        $newItem = New-Item $targetDirectory -type directory
+        Write-Host "Created $targetDirectory"    
     }else{
-        "$targetDirectory Already Exists"
+        Write-Host "$targetDirectory Already Exists"
     }
 
     return $targetDirectory
@@ -183,7 +183,7 @@ function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
       }
 
       "Copying Platform Version $platformVersion to $targetDirectory"
-      Copy-Item -Path "$platform\*.*" -Destination "$targetDirectory"
+      Copy-Item -Path "$platform\*.*" -Destination $targetDirectory
       "Contents of $targetDirectory"
       get-childitem "$targetDirectory"
 }
