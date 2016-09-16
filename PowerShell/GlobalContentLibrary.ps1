@@ -29,7 +29,7 @@ function Ready-DeploymentEnvironment([string]$targetMachineHostName, [string]$ta
         $utility = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/Utility.ps1"
 
         DownloadFile -uri $userRights -destinationDirectory $deploymentToolsPath
-        DownloadFile -uri $userRights -destinationDirectory $utility
+        DownloadFile -uri $utility -destinationDirectory $deploymentToolsPath
     }
 }
 
