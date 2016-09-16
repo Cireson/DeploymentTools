@@ -14,8 +14,10 @@ function Ready-DeploymentEnvironment([string]$targetMachineHostName, [string]$ta
         if((Test-Path $deploymentToolsPath) -ne $true){
             New-Item $deploymentToolsPath -ItemType Directory
         }else{
-            Remove-Item "$deploymentToolsPath\*.*" -Recurse -Force
+            Remove-Item -Path "$deploymentToolsPath\*" -Recurse -Force
         }
+
+        Get-ChildItems $deploymentToolsPath
   
         function DownloadFile([System.Uri]$uri, $destinationDirectory){
             $fileName = $uri.Segments[$uri.Segments.Count-1]
