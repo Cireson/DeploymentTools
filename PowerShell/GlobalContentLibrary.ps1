@@ -13,6 +13,8 @@ function Ready-DeploymentEnvironment([string]$targetMachineHostName, [string]$ta
         
         if((Test-Path $deploymentToolsPath) -ne $true){
             New-Item $deploymentToolsPath -ItemType Directory
+        }else{
+            Remove-Item $deploymentToolsPath -Recurse -Force
         }
   
         function DownloadFile([System.Uri]$uri, $destinationDirectory){
