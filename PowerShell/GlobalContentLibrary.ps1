@@ -10,8 +10,9 @@ function Ready-DeploymentEnvironment([string]$targetMachineHostName, [string]$ta
     $session = Create-RemoteSession $targetMachineHostName $targetMachineUserName $targetMachinePassword
     Invoke-Command -Session $session -ScriptBlock{ 
         $deploymentToolsPath = "c:\DeploymentTools"
+        
         if((Test-Path $deploymentToolsPath) -ne $true){
-        New-Item $deploymentToolsPath -ItemType Directory
+            New-Item $deploymentToolsPath -ItemType Directory
         }
   
         function DownloadFile([System.Uri]$uri, $destinationDirectory){
@@ -25,7 +26,20 @@ function Ready-DeploymentEnvironment([string]$targetMachineHostName, [string]$ta
         }
 
         $userRights = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/UserRights.ps1"
+        $utility = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/Utility.ps1"
 
         DownloadFile -uri $userRights -destinationDirectory $deploymentToolsPath
+        DownloadFile -uri $userRights -destinationDirectory $utility
+    }
+}
+
+function Ready-TargetEnvironment([string]$targetMachineHostName, [string]$targetMachineUserName, [string]$targetMachinePassword){
+    $session = Create-RemoteSession $targetMachineHostName $targetMachineUserName $targetMachinePassword
+    Invoke-Command -Session $session -ScriptBlock{ 
+        $deploymentToolsPath = "c:\DeploymentTools"
+        
+        Import-Module "$deploymentToolsPath\Utility.ps1"
+
+        Get-PowerShellVersion
     }
 }
