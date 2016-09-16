@@ -7,6 +7,10 @@
     [string]$targetMachinePassword
 )
 
+"targetMachineHostName: $targetMachineHostName"
+"targetMachineUserName: $targetMachineUserName"
+"targetMachinePassword: $targetMachinePassword"
+
 function CreateRemoteSession($machineHostName, $machineUserName, $machinePassword){
     $password = ConvertTo-SecureString –String $machinePassword –AsPlainText -Force
     $credential = New-Object –TypeName "System.Management.Automation.PSCredential" –ArgumentList $machineUserName, $password
