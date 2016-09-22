@@ -52,8 +52,8 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
 
         Get-PowerShellVersion
 
-		Copy-NuGets "AMDev" "storageforamdev" "c:\AMRoot" "temp"
+		Copy-NuGets $onDeploymentVariables.resourceGroupName $onDeploymentVariables.storageAccountName $onDeploymentVariables.productRoot $onDeploymentVariables.storageTempContainerName
 
-		Restart-Service -DisplayName "Platform_AM"
+		Restart-Service -DisplayName "Platform_${onDeploymentVariables.serviceName}"
     }
 }
