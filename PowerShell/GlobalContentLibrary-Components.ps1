@@ -159,7 +159,7 @@ function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
          $webclient.DownloadFile($url,$file)
 
         "Unzipping $file"
-        Unzip $file "$platform\PackageContents"
+        Unzip-File $file "$platform\PackageContents"
 
         "Removing $file"
         Remove-Item $file -recurse -force
@@ -171,7 +171,7 @@ function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
         Remove-Item "$platform\PackageContents" -Recurse -Force
 
         "Unzipping Platform Host"
-        Unzip "$platform\Cireson.Platform.Host.zip" $platform
+        Unzip-File "$platform\Cireson.Platform.Host.zip" $platform
 
         "Remove Platform Host Zip"
         Remove-Item "$platform\Cireson.Platform.Host.zip"
