@@ -19,7 +19,8 @@ function DownloadFile([System.Uri]$uri, $destinationDirectory){
 function Ready-DeploymentEnvironment([hashtable]$deploymentVariables){
     $session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
     
-	$agentDeploymentToolsPath = "${deploymentVariables.agentReleaseDirectory}\DeploymentTools"
+	$agentReleaseDirectory = $deploymentVariables.agentReleaseDirectory
+	$agentDeploymentToolsPath = "$agentReleaseDirectory\DeploymentTools"
 
 	$userRights = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/UserRights.ps1"
 	$utility = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/Utility.ps1"
@@ -64,7 +65,8 @@ function Ready-DeploymentEnvironment([hashtable]$deploymentVariables){
 function Ready-TargetEnvironment([hashtable]$deploymentVariables){
     $session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
 
-	$agentDeploymentToolsPath = "${deploymentVariables.agentReleaseDirectory}\DeploymentTools"
+	$agentReleaseDirectory = $deploymentVariables.agentReleaseDirectory
+	$agentDeploymentToolsPath = "$agentReleaseDirectory\DeploymentTools"
 
 	Import-Module "$agentDeploymentToolsPath\Utility.ps1"
     Import-Module "$agentDeploymentToolsPath\AddExtension-Components.ps1"
