@@ -1,4 +1,6 @@
 ﻿function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName){
+	Get-Module -ListAvailable
+
 	Import-Module -Name Azure
 
 	$storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $resourceGroupName| Where-Object{ $_.StorageAccountName -eq $storageAccountName}
