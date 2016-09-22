@@ -48,13 +48,12 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         $onDeploymentVariables = $Using:deploymentVariables
 
         Import-Module "$deploymentToolsPath\Utility.ps1"
-        Import-Module "$deploymentToolsPath\UserRights.ps1"
         Import-Module "$deploymentToolsPath\AddExtension-Components.ps1"
 
         Get-PowerShellVersion
 
-        # Copy extension to temp storage
-		# Copy extension to InstallableCpex & a cache for when the base system updates?
-		# Restart the service to install
+		Copy-NuGets "AMDev" "storageforamdev" "c:\AMRoot" "temp"
+
+		Restart-Service -DisplayName "Platform_AM"
     }
 }
