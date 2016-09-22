@@ -30,7 +30,7 @@ function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlSer
 	"sqlServiceUserPassword: $sqlServiceUserPassword"
 
     $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection($connectionString)
-    $query = "SELECT result = 1 FROM sys.database_principals WHERE authentication_type = 2 AND name = 'gclservice'"
+    $query = "SELECT result = 1 FROM sys.database_principals WHERE authentication_type = 2 AND name = 'amservice'"
     $command = New-Object -TypeName System.Data.SqlClient.SqlCommand($query, $connection)
     $connection.Open()
     $result = $command.ExecuteScalar()
@@ -40,6 +40,7 @@ function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlSer
     }else{
         "********Creating Sql User********"
         $query = "Create user $sqlServiceUserName with password = '$sqlServiceUserPassword'; ALTER AUTHORIZATION ON SCHEMA::[db_owner] TO [$sqlServiceUserName]; ALTER ROLE [db_owner] ADD MEMBER [$sqlServiceUserName];"
+		"query: $query"
         $command = New-Object -TypeName System.Data.SqlClient.SqlCommand($query, $connection)
         $command.ExecuteNonQuery() #Other methods are available if you want to get the return value of your query.
     }
