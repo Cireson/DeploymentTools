@@ -62,7 +62,7 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         $connectionString = Create-PlatformConnectionString -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlUserName -sqlPassword $onDeploymentVariables.azureSqlUserPassword
         $targetDirectory = Create-TargetDirectory $rootDirectory $onDeploymentVariables.targetVersion
 
-        Create-ContainedDatabaseUser -connectionString $adminConnectionString -sqlServiceUserName $onDeploymentVariables.azureSqlUserName -sqlServicePassword $onDeploymentVariables.azureSqlUserPassword
+        Create-ContainedDatabaseUser -connectionString $adminConnectionString -sqlServiceUserName $onDeploymentVariables.azureSqlUserName -sqlServiceUserPassword $onDeploymentVariables.azureSqlUserPassword
 
         Remove-RunningService -serviceName "Platform_AM"
 
