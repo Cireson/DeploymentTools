@@ -83,6 +83,9 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         $ErrorActionPreference = "Stop"
 		$onDeploymentVariables = $Using:deploymentVariables
 		$serviceName = $onDeploymentVariables.serviceName
+		$deploymentToolsPath = "c:\DeploymentTools"
+
+		Import-Module "$deploymentToolsPath\Utility.ps1"
 
         Get-PowerShellVersion
 
