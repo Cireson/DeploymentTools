@@ -24,8 +24,6 @@
 			$onBlobUri = $Using:blobUri
 			$onFileName = $Using:nuget.Name
 			$onVersion = $Using:version
-			$onWebUiVersion = $Using:webUiVersion
-			$onExtensionCache = $Using:extensionCache
 
 			"Blob URI: $onBlobUri"
 			"File Name: $onFileName"
