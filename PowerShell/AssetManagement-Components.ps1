@@ -143,54 +143,68 @@ function Create-TargetDirectory($rootDirectory, $targetVersion){
 }
 
 function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
-    $platformBaseDirectory = "$baseDirectory\platform"
-      if((Test-Path $platformBaseDirectory) -ne $true){
-          New-Item $platformBaseDirectory -type directory    
-      }
-  
-    $platform = "$platformBaseDirectory\$platformVersion"
+	$platformBaseDirectory = "$baseDirectory\platform"
+	$platform = "$platformBaseDirectory\$platformVersion"
 
+	Write-Output "Create Directory to Store Platform Versions, $platformBaseDirectory"
+	if((Test-Path $platformBaseDirectory) -ne $true){
+		$result = New-Item $platformBaseDirectory -type directory    
+		Write-Output "`tCreated"
+	}else{
+		Write-Output "`tAlready Exists"
+	}
+  
+    Write-Output "Create Directory to Store Specific Platform Version, $platform"
     if((Test-Path $platform) -ne $true){
-
-        New-Item $platform -type directory
+		$result = New-Item $platform -type directory
+		Write-Output "`tCreated"
+	}else{
+		Write-Output "`tAlready Exists"
+	}
   
-        $url = "https://www.nuget.org/api/v2/package/Cireson.Platform.Core.Host/$platformVersion"
-        Write-Output "Url: $url"
-  
-        $file = "$platform\platform.zip"
-        Write-Output "File: $file"
 
-         $webclient = New-Object System.Net.WebClient
-         $webclient.DownloadFile($url,$file)
+	Write-Output "Download Specific Platform Version"
+	$url = "https://www.nuget.org/api/v2/package/Cireson.Platform.Core.Host/$platformVersion"
+	$file = "$platform\platform.zip"
+	if((Test-Path $file) -ne $true){
+		Write-Output "`tClean Directory $platform"
+		$result = Remove-Item -Path "$platform\*" -Recurse -Force
 
-        "Unzipping $file"
-        Unzip-File $file "$platform\PackageContents"
+		Write-Output "`tDownload From: $url"
+		Write-Output "`tSave As: $file"
 
-        "Removing $file"
-        Remove-Item $file -recurse -force
+		$webclient = New-Object System.Net.WebClient
+		$result = $webclient.DownloadFile($url,$file)
 
-        "Copying Host Zip to $platform"
-        Copy-Item -Path "$platform\PackageContents\content\PlatformRuntime\Cireson.Platform.Host.zip" -Destination "$platform\Cireson.Platform.Host.zip"
+		Write-Output "`tDownload Completed"
+	}
 
-        "Remove Package Contents"
-        Remove-Item "$platform\PackageContents" -Recurse -Force
+	Write-Output "Unzipping $file"
+	Unzip-File $file "$platform\PackageContents"
 
-        "Unzipping Platform Host"
-        Unzip-File "$platform\Cireson.Platform.Host.zip" $platform
+	Write-Output "Removing $file"
+	Remove-Item $file -recurse -force
 
-        "Remove Platform Host Zip"
-        Remove-Item "$platform\Cireson.Platform.Host.zip"
+	Write-Output "Copying Host Zip to $platform"
+	Copy-Item -Path "$platform\PackageContents\content\PlatformRuntime\Cireson.Platform.Host.zip" -Destination "$platform\Cireson.Platform.Host.zip"
 
-        "Platform Host $platformVersion Downloaded"
-        "Find at: $platform"
-      }else{
-            "Platform Host $platformVersion Already Exists"
-      }
+	Write-Output "Remove Package Contents"
+	Remove-Item "$platform\PackageContents" -Recurse -Force
 
-      "Copying Platform Version $platformVersion to $targetDirectory"
-      Copy-Item -Path "$platform\*.*" -Destination $targetDirectory
-      "Contents of $targetDirectory"
-      get-childitem "$targetDirectory"
+	Write-Output "Unzipping Platform Host"
+	Unzip-File "$platform\Cireson.Platform.Host.zip" $platform
+
+	Write-Output "Remove Platform Host Zip"
+	Remove-Item "$platform\Cireson.Platform.Host.zip"
+
+	Write-Output "Platform Host $platformVersion Downloaded"
+	Write-Output "Find at: $platform"
+      
+
+	Write-Output "Copying Platform Version $platformVersion to $targetDirectory"
+	Copy-Item -Path "$platform\*.*" -Destination $targetDirectory
+	Write-Output "Contents of $targetDirectory"
+	get-childitem "$targetDirectory"
 }
 
 function Update-PlatformConfig($targetDirectory, $connectionString){
