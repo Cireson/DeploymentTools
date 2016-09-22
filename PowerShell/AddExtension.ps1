@@ -22,6 +22,12 @@ function Ready-DeploymentEnvironment([hashtable]$deploymentVariables){
 	$agentReleaseDirectory = $deploymentVariables.agentReleaseDirectory
 	$agentDeploymentToolsPath = "$agentReleaseDirectory\DeploymentTools"
 
+	if((Test-Path $agentDeploymentToolsPath) -ne $true){
+        New-Item $agentDeploymentToolsPath -ItemType Directory
+    }else{
+        Remove-Item -Path "$agentDeploymentToolsPath\*" -Recurse -Force
+    }
+
 	$userRights = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/UserRights.ps1"
 	$utility = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/Utility.ps1"
 	$components = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/AddExtension-Components.ps1"
