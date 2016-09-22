@@ -1,6 +1,4 @@
-﻿function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName){
-	Get-Module -ListAvailable
-
+﻿function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session){
 	Import-Module -Name Azure
 
 	$storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $resourceGroupName| Where-Object{ $_.StorageAccountName -eq $storageAccountName}
@@ -15,8 +13,6 @@
 	$buildDefinitionName = $env:BUILD_DEFINITIONNAME
 
 	$nuGets = Get-ChildItem "${workingDirectory}/${buildDefinitionName}/drop/" | Where-Object {$_.Name.EndsWith(".nupkg")}
-
-	$session = CreateRemoteSession $targetMachineHostName $targetMachineUserName $targetMachinePassword
 
 	foreach($nuGet in $nuGets){
 		"----Copying $nuGet.FullName to Temp Azure Storage----"

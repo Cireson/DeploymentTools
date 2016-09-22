@@ -43,6 +43,9 @@ function Ready-DeploymentEnvironment([hashtable]$deploymentVariables){
 
 function Ready-TargetEnvironment([hashtable]$deploymentVariables){
     $session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
+
+	Copy-NuGets $onDeploymentVariables.resourceGroupName $onDeploymentVariables.storageAccountName $onDeploymentVariables.productRoot $onDeploymentVariables.storageTempContainerName $session
+
     Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
         $deploymentToolsPath = "c:\DeploymentTools"
@@ -52,8 +55,6 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         Import-Module "$deploymentToolsPath\AddExtension-Components.ps1"
 
         Get-PowerShellVersion
-
-		Copy-NuGets $onDeploymentVariables.resourceGroupName $onDeploymentVariables.storageAccountName $onDeploymentVariables.productRoot $onDeploymentVariables.storageTempContainerName
 
 		Restart-Service -DisplayName "Platform_${onDeploymentVariables.serviceName}"
     }
