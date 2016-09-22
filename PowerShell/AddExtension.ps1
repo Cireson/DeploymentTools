@@ -77,7 +77,7 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
 	Import-Module "$agentDeploymentToolsPath\Utility.ps1"
     Import-Module "$agentDeploymentToolsPath\AddExtension-Components.ps1"
 
-	Copy-NuGets $deploymentVariables.resourceGroupName $deploymentVariables.storageAccountName $deploymentVariables.productRoot $deploymentVariables.storageTempContainerName $session
+	Copy-NuGets $deploymentVariables.resourceGroupName $deploymentVariables.storageAccountName $deploymentVariables.productRoot $deploymentVariables.storageTempContainerName $session $deploymentVariables.agentReleaseDirectory $deploymentVariables.buildDefinitionName
 
     Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"

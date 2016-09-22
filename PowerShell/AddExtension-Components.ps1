@@ -1,4 +1,4 @@
-﻿function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session){
+﻿function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session, $agentReleaseDirectory, $buildDefinitionName){
 	Import-Module -Name Azure
 
 	$storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $resourceGroupName| Where-Object{ $_.StorageAccountName -eq $storageAccountName}
@@ -10,9 +10,9 @@
 	$storageContext
 
 	$version = $env:BUILD_BUILDNUMBER
-	$buildDefinitionName = $env:BUILD_DEFINITIONNAME
-
-	$nuGets = Get-ChildItem "${workingDirectory}/${buildDefinitionName}/drop/" | Where-Object {$_.Name.EndsWith(".nupkg")}
+	
+	#$(System.DefaultWorkingDirectory)/Connectors.ConfigMgr (CI - integration)/drop/Cireson.AssetManagement.Connectors.ConfigMgr.Core.0.1.0-rc0051.nupkg
+	$nuGets = Get-ChildItem "$agentReleaseDirectory/$buildDefinitionName/drop/" | Where-Object {$_.Name.EndsWith(".nupkg")}
 
 	foreach($nuGet in $nuGets){
 		"----Copying $nuGet.FullName to Temp Azure Storage----"
