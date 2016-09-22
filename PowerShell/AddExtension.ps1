@@ -6,13 +6,37 @@
     return New-PSSession -ConnectionUri $targetMachine -Credential $credential –SessionOption $SessionOptions
 }
 
+function DownloadFile([System.Uri]$uri, $destinationDirectory){
+    $fileName = $uri.Segments[$uri.Segments.Count-1]
+    $destinationFile = Join-Path $destinationDirectory $fileName
+
+    "Downloading $uri to $destinationFile"
+
+    $webclient = New-Object System.Net.WebClient
+    $webclient.DownloadFile($uri,$destinationFile)
+}
+
 function Ready-DeploymentEnvironment([hashtable]$deploymentVariables){
     $session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
-    Invoke-Command -Session $session -ScriptBlock{ 
+    
+	$agentDeploymentToolsPath = "${deploymentVariables.agentReleaseDirectory}\DeploymentTools"
+
+	$userRights = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/UserRights.ps1"
+	$utility = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/Utility.ps1"
+	$components = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/AddExtension-Components.ps1"
+	
+	DownloadFile -uri $userRights -destinationDirectory $agentDeploymentToolsPath
+	DownloadFile -uri $utility -destinationDirectory $agentDeploymentToolsPath
+    DownloadFile -uri $components -destinationDirectory $agentDeploymentToolsPath
+
+	Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
         $deploymentToolsPath = "c:\DeploymentTools"
-        $onDeploymentVariables = $Using:deploymentVariables
-        
+		$onDeploymentVariables = $Using:deploymentVariables
+		$onUserRights = $Using:userRights
+        $onUtility = $Using:utility
+		$onComponents = $Using:components
+
         if((Test-Path $deploymentToolsPath) -ne $true){
             New-Item $deploymentToolsPath -ItemType Directory
         }else{
@@ -31,28 +55,25 @@ function Ready-DeploymentEnvironment([hashtable]$deploymentVariables){
             $webclient.DownloadFile($uri,$destinationFile)
         }
 
-        $userRights = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/UserRights.ps1"
-        $utility = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/Utility.ps1"
-        $components = [System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/AddExtension-Components.ps1"
-
-        DownloadFile -uri $userRights -destinationDirectory $deploymentToolsPath
-        DownloadFile -uri $utility -destinationDirectory $deploymentToolsPath
-        DownloadFile -uri $components -destinationDirectory $deploymentToolsPath
-    }
+        DownloadFile -uri $onUserRights -destinationDirectory $deploymentToolsPath
+        DownloadFile -uri $onUtility -destinationDirectory $deploymentToolsPath
+        DownloadFile -uri $onComponents -destinationDirectory $deploymentToolsPath
+	}
 }
 
 function Ready-TargetEnvironment([hashtable]$deploymentVariables){
     $session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
 
+	$agentDeploymentToolsPath = "${deploymentVariables.agentReleaseDirectory}\DeploymentTools"
+
+	Import-Module "$agentDeploymentToolsPath\Utility.ps1"
+    Import-Module "$agentDeploymentToolsPath\AddExtension-Components.ps1"
+
 	Copy-NuGets $onDeploymentVariables.resourceGroupName $onDeploymentVariables.storageAccountName $onDeploymentVariables.productRoot $onDeploymentVariables.storageTempContainerName $session
 
     Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
-        $deploymentToolsPath = "c:\DeploymentTools"
 		$onDeploymentVariables = $Using:deploymentVariables
-
-        Import-Module "$deploymentToolsPath\Utility.ps1"
-        Import-Module "$deploymentToolsPath\AddExtension-Components.ps1"
 
         Get-PowerShellVersion
 
