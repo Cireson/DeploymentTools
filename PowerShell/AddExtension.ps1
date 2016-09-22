@@ -77,14 +77,15 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
 	Import-Module "$agentDeploymentToolsPath\Utility.ps1"
     Import-Module "$agentDeploymentToolsPath\AddExtension-Components.ps1"
 
-	Copy-NuGets $onDeploymentVariables.resourceGroupName $onDeploymentVariables.storageAccountName $onDeploymentVariables.productRoot $onDeploymentVariables.storageTempContainerName $session
+	Copy-NuGets $deploymentVariables.resourceGroupName $deploymentVariables.storageAccountName $deploymentVariables.productRoot $deploymentVariables.storageTempContainerName $session
 
     Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
 		$onDeploymentVariables = $Using:deploymentVariables
+		$serviceName = $onDeploymentVariables.serviceName
 
         Get-PowerShellVersion
 
-		Restart-Service -DisplayName "Platform_${onDeploymentVariables.serviceName}"
+		Restart-Service -DisplayName "Platform_$serviceName"
     }
 }
