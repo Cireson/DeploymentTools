@@ -25,6 +25,10 @@ function Create-PlatformConnectionString([string]$sqlServer, [string]$sqlDatabas
 }
 
 function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlServiceUserName, [string]$sqlServiceUserPassword){
+	"connectionString: $connectionString"
+	"sqlServiceUserName: $sqlServiceUserName"
+	"sqlServiceUserPassword: $sqlServiceUserPassword"
+
     $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection($connectionString)
     $query = "SELECT result = 1 FROM sys.database_principals WHERE authentication_type = 2 AND name = 'gclservice'"
     $command = New-Object -TypeName System.Data.SqlClient.SqlCommand($query, $connection)
