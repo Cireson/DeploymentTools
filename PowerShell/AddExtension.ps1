@@ -45,7 +45,8 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
     $session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
     Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
-        $onDeploymentVariables = $Using:deploymentVariables
+        $deploymentToolsPath = "c:\DeploymentTools"
+		$onDeploymentVariables = $Using:deploymentVariables
 
         Import-Module "$deploymentToolsPath\Utility.ps1"
         Import-Module "$deploymentToolsPath\AddExtension-Components.ps1"
