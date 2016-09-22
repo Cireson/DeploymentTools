@@ -52,7 +52,7 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
         
         Import-Module "$deploymentToolsPath\Utility.ps1"
         Import-Module "$deploymentToolsPath\UserRights.ps1"
-        Import-Module "$deploymentToolsPath\GlobalContentLibrary-Components.ps1"
+        Import-Module "$deploymentToolsPath\AssetManagement-Components.ps1"
 
         Get-PowerShellVersion
 
