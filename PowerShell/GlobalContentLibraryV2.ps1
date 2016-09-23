@@ -26,15 +26,19 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 }
 
 function Import-DeploymentScripts($agentPowerShellLocation, $uris){
+	Write-Host "Start Import-DeploymentScripts" -ForegroundColor Green
 	foreach($uri in $uris){
 		$fileName = $uri.Segments[$uri.Segments.Count-1]
-		Import-Module "$agentPowerShellLocation\$fileName"
+		$module = "$agentPowerShellLocation\$fileName"
+		Write-Host "`tImporting module $module" -Green
+		Import-Module $module -Global
 	}
+	Write-Host "End Import-DeploymentScripts" -ForegroundColor Green
 }
 
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 	$ErrorActionPreference = "Stop"
-	Write-Host "Version 2.0.3" -ForegroundColor Yellow
+	Write-Host "Version 2.0.4" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
