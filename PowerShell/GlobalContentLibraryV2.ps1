@@ -8,96 +8,6 @@
     $webclient.DownloadFile($uri,$destinationFile)
 }
 
-function Ensure-EmptyRemoteDirectoryExists($session, $directory){
-	$ErrorActionPreference = "Stop"
-
-	Invoke-Command -Session $session -ScriptBlock{ 
-		$ErrorActionPreference = "Stop"
-		$onDirectory = $Using:directory
-
-		if((Test-Path $onDirectory) -ne $true){
-			$result = New-Item $onDirectory -ItemType Directory
-			Write-Host "Created $onDirectory" -ForegroundColor Green
-		}else{
-			Remove-Item -Path "$onDirectory\*" -Recurse -Force
-			Write-Host "Cleaned $onDirectory" -ForegroundColor Yellow
-		}
-	}
-}
-
-function Ready-DeploymentEnvironment($session, $uris, $remotePowerShellLocation){
-	Invoke-Command -Session $session -ScriptBlock{ 
-        $ErrorActionPreference = "Stop"
-		$onUris = $Using:uris
-		$onRemotePowerShellLocation = $Using:remotePowerShellLocation
-
-        function DownloadFile([System.Uri]$uri, $destinationDirectory){
-            $fileName = $uri.Segments[$uri.Segments.Count-1]
-            $destinationFile = Join-Path $destinationDirectory $fileName
-
-            Write-Host "Downloading $uri to $destinationFile" -ForegroundColor Green
-
-            $webclient = New-Object System.Net.WebClient
-            $webclient.DownloadFile($uri,$destinationFile)
-        }
-
-        foreach($uri in $onUris){
-			DownloadFile -uri $uri -destinationDirectory $onRemotePowerShellLocation
-		}
-    }
-}
-
-function Ready-TargetEnvironment($session, $agentPowerShellLocation, $remotePowerShellLocation, [hashtable]$deploymentVariables){
-	Import-Module "$agentPowerShellLocation\Utility.ps1"
-    Import-Module "$agentPowerShellLocation\GlobalContentLibrary-Components.ps1"
-
-    Invoke-Command -Session $session -ScriptBlock{ 
-        $ErrorActionPreference = "Stop"
-        $onDeploymentVariables = $Using:deploymentVariables
-        $onRemotePowerShellLocation = $Using:remotePowerShellLocation
-
-        $productDirectory = $onDeploymentVariables.productRoot
-        $serviceName = $onDeploymentVariables.serviceName
-
-        Import-Module "$onRemotePowerShellLocation\Utility.ps1"
-        Import-Module "$onRemotePowerShellLocation\UserRights.ps1"
-        Import-Module "$onRemotePowerShellLocation\GlobalContentLibrary-Components.ps1"
-
-        Get-PowerShellVersion
-
-        Create-DestinationDirectories -root $productDirectory -targetVersion $onDeploymentVariables.targetVersion
-
-        $adminConnectionString = Create-PlatformConnectionString -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlAdministratorUserName -sqlPassword $onDeploymentVariables.azureSqlAdministratorPassword
-        $connectionString = Create-PlatformConnectionString -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlUserName -sqlPassword $onDeploymentVariables.azureSqlUserPassword
-        $targetDirectory = Create-TargetDirectory $productDirectory $onDeploymentVariables.targetVersion
-
-        Create-ContainedDatabaseUser -connectionString $adminConnectionString -sqlServiceUserName $onDeploymentVariables.azureSqlUserName -sqlServiceUserPassword $onDeploymentVariables.azureSqlUserPassword
-
-        Remove-RunningService -serviceName "Platform_$serviceName"
-
-        Create-InboundFirewallRule "Http 80" "80"
-        Create-InboundFirewallRule "Https 443" "443"
-
-        Create-ServiceUser -serviceUserName $onDeploymentVariables.serviceUserName -servicePassword $onDeploymentVariables.serviceUserPassword
-
-        Download-Platform -baseDirectory $productDirectory -platformVersion $onDeploymentVariables.platformVersion -targetDirectory $targetDirectory
-
-        Update-PlatformConfig -targetDirectory $targetDirectory -connectionString $connectionString
-    }
-
-	Copy-NuGets $deploymentVariables.resourceGroupName $deploymentVariables.storageAccountName $deploymentVariables.productRoot $deploymentVariables.storageTempContainerName $session $deploymentVariables.agentReleaseDirectory $deploymentVariables.buildDefinitionName
-
-	Invoke-Command -Session $session -ScriptBlock{ 
-        $ErrorActionPreference = "Stop"
-        $onDeploymentVariables = $Using:deploymentVariables
-		$onRemotePowerShellLocation = $Using:remotePowerShellLocation
-
-        $productDirectory = $onDeploymentVariables.productRoot
-
-		Start-Platform $onDeploymentVariables.azureSqlUserName $onDeploymentVariables.azureSqlUserPassword $productDirectory $onDeploymentVariables.targetVersion
-    }
-}
-
 function Get-DeploymentScripts($destinationFolder, $uris){
 	Write-Host "Start Get-DeploymentScripts" -ForegroundColor Green
 	if((Test-Path $destinationFolder) -ne $true){
@@ -115,9 +25,16 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 	Write-Host "End Get-DeploymentScripts" -ForegroundColor Green
 }
 
+function Import-DeploymentScripts($agentPowerShellLocation, $uris){
+	foreach($uri in $uris){
+		$fileName = $uri.Segments[$uri.Segments.Count-1]
+		Import-Module "$agentPowerShellLocation\$fileName"
+	}
+}
+
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 	$ErrorActionPreference = "Stop"
-	Write-Host "Version 2.0.2" -ForegroundColor Yellow
+	Write-Host "Version 2.0.3" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -156,7 +73,7 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 
 	Get-DeploymentScripts $agentPowerShellLocation $deploymentScripts
 
-	Import-Module "$agentPowerShellLocation\Utility.ps1"
+	Import-DeploymentScripts $agentPowerShellLocation $deploymentScripts
 
 	$remotePowerShellLocation = "c:\$powershellDirectoryName"
 	$session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
