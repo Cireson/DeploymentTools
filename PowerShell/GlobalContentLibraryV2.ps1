@@ -10,6 +10,7 @@
 
 function Ensure-EmptyRemoteDirectoryExists($session, $directory){
 	Invoke-Command -Session $session -ScriptBlock{ 
+		$ErrorActionPreference = "Stop"
 		if((Test-Path $directory) -ne $true){
 			$result = New-Item $directory -ItemType Directory
 			Write-Host "Created $directory" -ForegroundColor Green
@@ -122,6 +123,16 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 		serviceName = $Env:serviceName
 		agentReleaseDirectory = $Env:AGENT_RELEASEDIRECTORY
 		buildDefinitionName = $Env:BUILD_DEFINITIONNAME
+		serviceUserName = $Env:serviceUserName
+		serviceUserPassword = $Env:serviceUserPassword
+		azureSqlServerName = $Env:azureSqlServerName
+		azureSqlUserName = $Env:azureSqlUserName
+		azureSqlUserPassword = $Env:azureSqlUserPassword
+		azureSqlDatabase = $Env:azureSqlDatabase
+		platformVersion = $Env:platformVersion
+		azureSqlAdministratorUserName = $Env:azureSqlAdministratorUserName
+		azureSqlAdministratorPassword = $Env:azureSqlAdministratorPassword
+		targetVersion = $env:BUILD_BUILDNUMBER
 	}
 
 	Write-Host "Environment Variables Copied to HashTable`r`n" -ForegroundColor Green
@@ -140,7 +151,7 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 
 	Import-Module "$agentPowerShellLocation\Utility.ps1"
 
-	$remotePowerShellLocation = "c:\$powershellDirectory"
+	$remotePowerShellLocation = "c:\$powershellDirectoryName"
 	$session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
 
 	Ensure-EmptyRemoteDirectoryExists $session $remotePowerShellLocation
