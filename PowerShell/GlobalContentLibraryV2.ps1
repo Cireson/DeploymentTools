@@ -112,6 +112,8 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 }
 
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
+	Write-Host "Version 2.0.1" -ForegroundColor Yellow
+
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
 		targetMachineUserName = $Env:targetMachineUserName
