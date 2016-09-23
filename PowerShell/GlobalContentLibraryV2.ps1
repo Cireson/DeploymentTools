@@ -23,7 +23,7 @@ function Ensure-EmptyRemoteDirectoryExists($session, $directory){
 function Ready-DeploymentEnvironment($session, $uris, $remotePowerShellLocation){
 	Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
-		$onFiles = $Using:files
+		$onUris = $Using:uris
 		$onRemotePowerShellLocation = $Using:remotePowerShellLocation
 
         function DownloadFile([System.Uri]$uri, $destinationDirectory){
@@ -36,8 +36,8 @@ function Ready-DeploymentEnvironment($session, $uris, $remotePowerShellLocation)
             $webclient.DownloadFile($uri,$destinationFile)
         }
 
-        foreach($uri in $uris){
-			DownloadFile -uri $uri -destinationDirectory $remotePowerShellLocation
+        foreach($uri in $onUris){
+			DownloadFile -uri $uri -destinationDirectory $onRemotePowerShellLocation
 		}
     }
 }
