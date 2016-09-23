@@ -9,14 +9,18 @@
 }
 
 function Ensure-EmptyRemoteDirectoryExists($session, $directory){
+	$ErrorActionPreference = "Stop"
+
 	Invoke-Command -Session $session -ScriptBlock{ 
 		$ErrorActionPreference = "Stop"
-		if((Test-Path $directory) -ne $true){
-			$result = New-Item $directory -ItemType Directory
-			Write-Host "Created $directory" -ForegroundColor Green
+		$onDirectory = $Using:directory
+
+		if((Test-Path $onDirectory) -ne $true){
+			$result = New-Item $onDirectory -ItemType Directory
+			Write-Host "Created $onDirectory" -ForegroundColor Green
 		}else{
-			Remove-Item -Path "$directory\*" -Recurse -Force
-			Write-Host "Cleaned $directory" -ForegroundColor Yellow
+			Remove-Item -Path "$onDirectory\*" -Recurse -Force
+			Write-Host "Cleaned $onDirectory" -ForegroundColor Yellow
 		}
 	}
 }
@@ -112,7 +116,8 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 }
 
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
-	Write-Host "Version 2.0.1" -ForegroundColor Yellow
+	$ErrorActionPreference = "Stop"
+	Write-Host "Version 2.0.2" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -156,7 +161,7 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 	$remotePowerShellLocation = "c:\$powershellDirectoryName"
 	$session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
 
-	Ensure-EmptyRemoteDirectoryExists $session $remotePowerShellLocation
+	Ensure-EmptyRemoteDirectoryExists -session $session -directory $remotePowerShellLocation 
 
 	Ready-DeploymentEnvironment $session $deploymentScripts $remotePowerShellLocation
 

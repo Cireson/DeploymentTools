@@ -243,7 +243,6 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 			"Blob URI: $onBlobUri"
 			"File Name: $onFileName"
 			"Version: $onVersion"
-			"WebUiVersion: $onWebUiVersion"
 
 			$commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
 			$platformHostCpexData = "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
