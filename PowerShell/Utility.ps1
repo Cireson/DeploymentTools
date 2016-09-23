@@ -21,3 +21,11 @@ function Get-PowerShellVersion(){
     $PSVersionTable.PSVersion
     "************************************************************************"
 }
+
+function Create-RemoteSession($machineHostName, $machineUserName, $machinePassword){
+    $password = ConvertTo-SecureString –String $machinePassword –AsPlainText -Force
+    $credential = New-Object –TypeName "System.Management.Automation.PSCredential" –ArgumentList $machineUserName, $password
+    $SessionOptions = New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck
+    $targetMachine = "https://${machineHostName}:5986"
+    return New-PSSession -ConnectionUri $targetMachine -Credential $credential –SessionOption $SessionOptions
+}
