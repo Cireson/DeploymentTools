@@ -25,20 +25,9 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 	Write-Host "End Get-DeploymentScripts" -ForegroundColor Green
 }
 
-function Import-DeploymentScripts($agentPowerShellLocation, $uris){
-	Write-Host "Start Import-DeploymentScripts" -ForegroundColor Green
-	foreach($uri in $uris){
-		$fileName = $uri.Segments[$uri.Segments.Count-1]
-		$module = "$agentPowerShellLocation\$fileName"
-		Write-Host "`tImporting module $module" -Green
-		Import-Module $module -Global
-	}
-	Write-Host "End Import-DeploymentScripts" -ForegroundColor Green
-}
-
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 	$ErrorActionPreference = "Stop"
-	Write-Host "Version 2.0.4" -ForegroundColor Yellow
+	Write-Host "Version 2.0.5" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -77,7 +66,12 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 
 	Get-DeploymentScripts $agentPowerShellLocation $deploymentScripts
 
-	Import-DeploymentScripts $agentPowerShellLocation $deploymentScripts
+	foreach($uri in $deploymentScripts){
+		$fileName = $uri.Segments[$uri.Segments.Count-1]
+		$module = "$agentPowerShellLocation\$fileName"
+		Write-Host "`tImporting module $module" -ForegroundColor Green
+		Import-Module $module
+	}
 
 	$remotePowerShellLocation = "c:\$powershellDirectoryName"
 	$session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
