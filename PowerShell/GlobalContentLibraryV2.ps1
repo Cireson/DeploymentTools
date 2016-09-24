@@ -27,7 +27,7 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 	$ErrorActionPreference = "Stop"
-	Write-Host "Version 2.0.5" -ForegroundColor Yellow
+	Write-Host "Version 2.0.6" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -61,7 +61,7 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 	$deploymentScripts = @(
 		[System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/UserRights.ps1"
 		[System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/Utility.ps1"
-		[System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/GlobalContentLibrary-Components.ps1"
+		[System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/CommonDeployment.ps1"
 	)
 
 	Get-DeploymentScripts $agentPowerShellLocation $deploymentScripts
@@ -78,7 +78,48 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 
 	Ensure-EmptyRemoteDirectoryExists -session $session -directory $remotePowerShellLocation 
 
-	Ready-DeploymentEnvironment $session $deploymentScripts $remotePowerShellLocation
+	Push-RemoteDeploymentScripts $session $deploymentScripts $remotePowerShellLocation
 
-	Ready-TargetEnvironment $session $agentPowerShellLocation $remotePowerShellLocation $deploymentVariables
+	$adminConnectionString = Create-PlatformConnectionString -sqlServer $deploymentVariables.azureSqlServerName -sqlDatabase $deploymentVariables.azureSqlDatabase -sqlUserName $deploymentVariables.azureSqlAdministratorUserName -sqlPassword $deploymentVariables.azureSqlAdministratorPassword
+
+	Create-ContainedDatabaseUser -connectionString $adminConnectionString -sqlServiceUserName $deploymentVariables.azureSqlUserName -sqlServiceUserPassword $deploymentVariables.azureSqlUserPassword
+
+	Invoke-Command -Session $session -ScriptBlock{ 
+        $ErrorActionPreference = "Stop"
+        $onDeploymentVariables = $Using:deploymentVariables
+        $onRemotePowerShellLocation = $Using:remotePowerShellLocation
+		$onDeploymentScripts = $Using:deploymentScripts
+
+        $productDirectory = $onDeploymentVariables.productRoot
+        $serviceName = $onDeploymentVariables.serviceName
+
+        foreach($uri in $onDeploymentScripts){
+			$fileName = $uri.Segments[$uri.Segments.Count-1]
+			$module = "$onRemotePowerShellLocation\$fileName"
+			Write-Host "`tImporting module $module" -ForegroundColor Green
+			Import-Module $module
+		}
+
+        Get-PowerShellVersion
+
+        Create-DestinationDirectories -root $productDirectory -targetVersion $onDeploymentVariables.targetVersion
+
+        $connectionString = Create-PlatformConnectionString -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlUserName -sqlPassword $onDeploymentVariables.azureSqlUserPassword
+        $targetDirectory = Create-TargetDirectory $productDirectory $onDeploymentVariables.targetVersion
+
+        Remove-RunningService -serviceName "Platform_$serviceName"
+
+        Create-InboundFirewallRule "Http 80" "80"
+        Create-InboundFirewallRule "Https 443" "443"
+
+        Create-ServiceUser -serviceUserName $onDeploymentVariables.serviceUserName -servicePassword $onDeploymentVariables.serviceUserPassword
+
+        Download-Platform -baseDirectory $productDirectory -platformVersion $onDeploymentVariables.platformVersion -targetDirectory $targetDirectory
+
+        Update-PlatformConfig -targetDirectory $targetDirectory -connectionString $connectionString
+    }
+
+	Copy-NuGets $deploymentVariables.resourceGroupName $deploymentVariables.storageAccountName $deploymentVariables.productRoot $deploymentVariables.storageTempContainerName $session $deploymentVariables.agentReleaseDirectory $deploymentVariables.buildDefinitionName
+
+	Start-RemotePlatform -session $session -deploymentVariables $deploymentVariables
 }

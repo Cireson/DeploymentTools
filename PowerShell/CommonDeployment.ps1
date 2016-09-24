@@ -1,46 +1,18 @@
-﻿function Create-DestinationDirectories([string]$root, [string]$targetVersion){
-    $commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
-    $platformHostCpexData = "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
-    if((Test-Path $platformHostCpexData) -ne $true){
-        New-Item $platformHostCpexData -ItemType Directory
-    }
-    
-    $gclTarget = "$root\$targetVersion"
+﻿function Ensure-EmptyRemoteDirectoryExists($session, $directory){
+	$ErrorActionPreference = "Stop"
 
-    if((Test-Path $root) -ne $true){
-        New-Item $root -type directory
-    }else{
-        Write-Output "$root Exists"
-    }
+	Invoke-Command -Session $session -ScriptBlock{ 
+		$ErrorActionPreference = "Stop"
+		$onDirectory = $Using:directory
 
-    if((Test-Path $gclTarget) -ne $true){
-        New-Item $gclTarget -type directory
-    }else{
-        Write-Output "$gclTarget Exists"
-    }
-}
-
-function Create-PlatformConnectionString([string]$sqlServer, [string]$sqlDatabase, [string]$sqlUserName, [string]$sqlPassword){
-    return "Server=tcp:$sqlServer.database.windows.net,1433;Data Source=$sqlServer.database.windows.net;Initial Catalog=$sqlDatabase;Persist Security Info=False;User ID=$sqlUserName;Password=$sqlPassword;Encrypt=True;Connection Timeout=30;"
-}
-
-function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlServiceUserName, [string]$sqlServiceUserPassword){
-    $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection($connectionString)
-    $query = "SELECT result = 1 FROM sys.database_principals WHERE authentication_type = 2 AND name = 'gclservice'"
-    $command = New-Object -TypeName System.Data.SqlClient.SqlCommand($query, $connection)
-    $connection.Open()
-    $result = $command.ExecuteScalar()
-
-    if($result -eq 1){
-        "********User Already Exists********"
-    }else{
-        "********Creating Sql User********"
-        $query = "Create user $sqlServiceUserName with password = '$sqlServiceUserPassword'; ALTER AUTHORIZATION ON SCHEMA::[db_owner] TO [$sqlServiceUserName]; ALTER ROLE [db_owner] ADD MEMBER [$sqlServiceUserName];"
-        $command = New-Object -TypeName System.Data.SqlClient.SqlCommand($query, $connection)
-        $command.ExecuteNonQuery() #Other methods are available if you want to get the return value of your query.
-    }
-
-    $connection.Close()
+		if((Test-Path $onDirectory) -ne $true){
+			$result = New-Item $onDirectory -ItemType Directory
+			Write-Host "Created $onDirectory" -ForegroundColor Green
+		}else{
+			Remove-Item -Path "$onDirectory\*" -Recurse -Force
+			Write-Host "Cleaned $onDirectory" -ForegroundColor Yellow
+		}
+	}
 }
 
 function Remove-RunningService([string]$serviceName){
@@ -86,7 +58,6 @@ function Remove-RunningService([string]$serviceName){
     }
 }
 
-
 function Create-InboundFirewallRule($displayName, $port){
     $rule = Get-NetFirewallRule | Where-Object {$_.DisplayName -eq $displayName}
     if($rule -eq $null){
@@ -98,31 +69,32 @@ function Create-InboundFirewallRule($displayName, $port){
     }
 }
 
-function AddUserToGroup([string]$groupName,[string]$user)
-{
+function AddUserToGroup([string]$groupName,[string]$user){
     $Group = [ADSI]"WinNT://localhost/$groupName,group"   
     $Group.Add("WinNT://$user,user")
-} 
+}
+ 
+function Create-PlatformConnectionString([string]$sqlServer, [string]$sqlDatabase, [string]$sqlUserName, [string]$sqlPassword){
+    return "Server=tcp:$sqlServer.database.windows.net,1433;Data Source=$sqlServer.database.windows.net;Initial Catalog=$sqlDatabase;Persist Security Info=False;User ID=$sqlUserName;Password=$sqlPassword;Encrypt=True;Connection Timeout=30;"
+}
 
-function Create-ServiceUser($serviceUserName, $servicePassword){
-  $user = Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "LocalAccount='$True'" | Where-Object { $_.Name -eq $serviceUserName}
-  if($user -eq $null){
-    "Creating User $serviceUserName($servicePassword)"
-    NET USER $serviceUserName $servicePassword /ADD
-  }else{
-    "User $serviceUserName Already Exists"
-  }
+function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlServiceUserName, [string]$sqlServiceUserPassword){
+    $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection($connectionString)
+    $query = "SELECT result = 1 FROM sys.database_principals WHERE authentication_type = 2 AND name = 'gclservice'"
+    $command = New-Object -TypeName System.Data.SqlClient.SqlCommand($query, $connection)
+    $connection.Open()
+    $result = $command.ExecuteScalar()
 
-  Grant-UserRight $serviceUserName SeServiceLogonRight
+    if($result -eq 1){
+        "********User Already Exists********"
+    }else{
+        "********Creating Sql User********"
+        $query = "Create user $sqlServiceUserName with password = '$sqlServiceUserPassword'; ALTER AUTHORIZATION ON SCHEMA::[db_owner] TO [$sqlServiceUserName]; ALTER ROLE [db_owner] ADD MEMBER [$sqlServiceUserName];"
+        $command = New-Object -TypeName System.Data.SqlClient.SqlCommand($query, $connection)
+        $command.ExecuteNonQuery() #Other methods are available if you want to get the return value of your query.
+    }
 
-  $group = get-wmiobject win32_group -filter "name='Administrators'"
-  $user = $group.GetRelated("win32_useraccount") | Where-Object { $_.Name -eq $serviceUserName}
-  if($user -eq $null){
-    AddUserToGroup -groupName "Administrators" -user $serviceUserName
-    "----Added $serviceUserName to Administrators Group----"
-  }else{
-    "----$serviceUserName Already a Member of Administrators Group----"
-  }
+    $connection.Close()
 }
 
 function Create-TargetDirectory($rootDirectory, $targetVersion){
@@ -196,21 +168,32 @@ function Update-PlatformConfig($targetDirectory, $connectionString){
     $configFile.Save($configPath) 
 }
 
-function Start-Platform([string]$serviceUserName, [string]$serviceUserPassword, $productRoot, $deployedVersion){
-	Write-Host "Begin Start-Platform" -ForegroundColor Green
+function Start-RemotePlatform($session, $deploymentVariables){
+	Write-Host "Begin Start-RemotePlatform" -ForegroundColor Green
 
-	$platform = "$productRoot\$deployedVersion\Cireson.Platform.Host.exe"
+	Invoke-Command -Session $session -ScriptBlock{ 
+        $ErrorActionPreference = "Stop"
+        $onDeploymentVariables = $Using:deploymentVariables
 
-	if((Test-Path $platform) -eq $false){
-		throw "Platform not found at $platform"
-	}else{
-		Write-Host "Platform found at $platform" -ForegroundColor Green
-	}
+        $productDirectory = $onDeploymentVariables.productRoot
+		$deployedVersion = $onDeploymentVariables.targetVersion
+		$serviceName = $onDeploymentVariables.serviceName
+		$serviceUserName = $onDeploymentVariables.serviceUserName
+		$serviceUserPassword = $onDeploymentVariables.serviceUserPassword
 
-	Write-Host "Starting Platfrom at $platform" -ForegroundColor Green
-	start-process $platform -ArgumentList "-install", "-sn", GCL, "-usr", ".\$serviceUserName", "-pwd", $serviceUserPassword, "-worker" -wait
-	
-	Write-Host "End Start-Platform" -ForegroundColor Green
+		$platform = "$productDirectory\$deployedVersion\Cireson.Platform.Host.exe"
+
+		if((Test-Path $platform) -eq $false){
+			throw "Platform not found at $platform"
+		}else{
+			Write-Host "Platform found at $platform" -ForegroundColor Green
+		}
+
+		Write-Host "Starting Platfrom at $platform" -ForegroundColor Green
+		start-process $platform -ArgumentList "-install", "-sn", $serviceName, "-usr", ".\$serviceUserName", "-pwd", $serviceUserPassword, "-worker" -wait
+    }
+
+	Write-Host "End Start-RemotePlatform" -ForegroundColor Green
 }
 
 function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session, $agentReleaseDirectory, $buildDefinitionName){
@@ -260,24 +243,51 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 		Remove-AzureStorageBlob -Blob $nuGet.Name -Container $tempContainerName -Context $storageContext
 	}
 }
-function Ensure-EmptyRemoteDirectoryExists($session, $directory){
-	$ErrorActionPreference = "Stop"
 
-	Invoke-Command -Session $session -ScriptBlock{ 
-		$ErrorActionPreference = "Stop"
-		$onDirectory = $Using:directory
+function Create-ServiceUser($serviceUserName, $servicePassword){
+  $user = Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "LocalAccount='$True'" | Where-Object { $_.Name -eq $serviceUserName}
+  if($user -eq $null){
+    "Creating User $serviceUserName($servicePassword)"
+    NET USER $serviceUserName $servicePassword /ADD
+  }else{
+    "User $serviceUserName Already Exists"
+  }
 
-		if((Test-Path $onDirectory) -ne $true){
-			$result = New-Item $onDirectory -ItemType Directory
-			Write-Host "Created $onDirectory" -ForegroundColor Green
-		}else{
-			Remove-Item -Path "$onDirectory\*" -Recurse -Force
-			Write-Host "Cleaned $onDirectory" -ForegroundColor Yellow
-		}
-	}
+  Grant-UserRight $serviceUserName SeServiceLogonRight
+
+  $group = get-wmiobject win32_group -filter "name='Administrators'"
+  $user = $group.GetRelated("win32_useraccount") | Where-Object { $_.Name -eq $serviceUserName}
+  if($user -eq $null){
+    AddUserToGroup -groupName "Administrators" -user $serviceUserName
+    "----Added $serviceUserName to Administrators Group----"
+  }else{
+    "----$serviceUserName Already a Member of Administrators Group----"
+  }
 }
 
-function Ready-DeploymentEnvironment($session, $uris, $remotePowerShellLocation){
+function Create-DestinationDirectories([string]$root, [string]$targetVersion){
+    $commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
+    $platformHostCpexData = "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
+    if((Test-Path $platformHostCpexData) -ne $true){
+        New-Item $platformHostCpexData -ItemType Directory
+    }
+    
+    $gclTarget = "$root\$targetVersion"
+
+    if((Test-Path $root) -ne $true){
+        New-Item $root -type directory
+    }else{
+        Write-Output "$root Exists"
+    }
+
+    if((Test-Path $gclTarget) -ne $true){
+        New-Item $gclTarget -type directory
+    }else{
+        Write-Output "$gclTarget Exists"
+    }
+}
+
+function Push-RemoteDeploymentScripts($session, $uris, $remotePowerShellLocation){
 	Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
 		$onUris = $Using:uris
@@ -296,53 +306,5 @@ function Ready-DeploymentEnvironment($session, $uris, $remotePowerShellLocation)
         foreach($uri in $onUris){
 			DownloadFile -uri $uri -destinationDirectory $onRemotePowerShellLocation
 		}
-    }
-}
-
-function Ready-TargetEnvironment($session, $agentPowerShellLocation, $remotePowerShellLocation, [hashtable]$deploymentVariables){
-    Invoke-Command -Session $session -ScriptBlock{ 
-        $ErrorActionPreference = "Stop"
-        $onDeploymentVariables = $Using:deploymentVariables
-        $onRemotePowerShellLocation = $Using:remotePowerShellLocation
-
-        $productDirectory = $onDeploymentVariables.productRoot
-        $serviceName = $onDeploymentVariables.serviceName
-
-        Import-Module "$onRemotePowerShellLocation\Utility.ps1"
-        Import-Module "$onRemotePowerShellLocation\UserRights.ps1"
-        Import-Module "$onRemotePowerShellLocation\GlobalContentLibrary-Components.ps1"
-
-        Get-PowerShellVersion
-
-        Create-DestinationDirectories -root $productDirectory -targetVersion $onDeploymentVariables.targetVersion
-
-        $adminConnectionString = Create-PlatformConnectionString -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlAdministratorUserName -sqlPassword $onDeploymentVariables.azureSqlAdministratorPassword
-        $connectionString = Create-PlatformConnectionString -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlUserName -sqlPassword $onDeploymentVariables.azureSqlUserPassword
-        $targetDirectory = Create-TargetDirectory $productDirectory $onDeploymentVariables.targetVersion
-
-        Create-ContainedDatabaseUser -connectionString $adminConnectionString -sqlServiceUserName $onDeploymentVariables.azureSqlUserName -sqlServiceUserPassword $onDeploymentVariables.azureSqlUserPassword
-
-        Remove-RunningService -serviceName "Platform_$serviceName"
-
-        Create-InboundFirewallRule "Http 80" "80"
-        Create-InboundFirewallRule "Https 443" "443"
-
-        Create-ServiceUser -serviceUserName $onDeploymentVariables.serviceUserName -servicePassword $onDeploymentVariables.serviceUserPassword
-
-        Download-Platform -baseDirectory $productDirectory -platformVersion $onDeploymentVariables.platformVersion -targetDirectory $targetDirectory
-
-        Update-PlatformConfig -targetDirectory $targetDirectory -connectionString $connectionString
-    }
-
-	Copy-NuGets $deploymentVariables.resourceGroupName $deploymentVariables.storageAccountName $deploymentVariables.productRoot $deploymentVariables.storageTempContainerName $session $deploymentVariables.agentReleaseDirectory $deploymentVariables.buildDefinitionName
-
-	Invoke-Command -Session $session -ScriptBlock{ 
-        $ErrorActionPreference = "Stop"
-        $onDeploymentVariables = $Using:deploymentVariables
-		$onRemotePowerShellLocation = $Using:remotePowerShellLocation
-
-        $productDirectory = $onDeploymentVariables.productRoot
-
-		Start-Platform $onDeploymentVariables.azureSqlUserName $onDeploymentVariables.azureSqlUserPassword $productDirectory $onDeploymentVariables.targetVersion
     }
 }
