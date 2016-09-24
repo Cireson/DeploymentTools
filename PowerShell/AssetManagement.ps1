@@ -1,4 +1,31 @@
-﻿function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
+﻿function DownloadFile([System.Uri]$uri, $destinationDirectory){
+    $fileName = $uri.Segments[$uri.Segments.Count-1]
+    $destinationFile = Join-Path $destinationDirectory $fileName
+
+    "Downloading $uri to $destinationFile"
+
+    $webclient = New-Object System.Net.WebClient
+    $webclient.DownloadFile($uri,$destinationFile)
+}
+
+function Get-DeploymentScripts($destinationFolder, $uris){
+	Write-Host "Start Get-DeploymentScripts" -ForegroundColor Green
+	if((Test-Path $destinationFolder) -ne $true){
+        $newItem = New-Item $destinationFolder -ItemType Directory
+		Write-Host "Created destination $destinationFolder" -ForegroundColor Green
+    }else{
+        Remove-Item -Path "$destinationFolder\*" -Recurse -Force
+		Write-Host "Cleaned destination $destinationFolder" -ForegroundColor Green
+    }
+
+	foreach($uri in $uris){
+		DownloadFile -uri $uri -destinationDirectory $destinationFolder
+	}
+
+	Write-Host "End Get-DeploymentScripts" -ForegroundColor Green
+}
+
+function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 	$ErrorActionPreference = "Stop"
 	Write-Host "Version 1.0.1" -ForegroundColor Yellow
 
