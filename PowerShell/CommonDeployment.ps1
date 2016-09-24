@@ -80,7 +80,7 @@ function Create-PlatformConnectionString([string]$sqlServer, [string]$sqlDatabas
 
 function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlServiceUserName, [string]$sqlServiceUserPassword){
     $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection($connectionString)
-    $query = "SELECT result = 1 FROM sys.database_principals WHERE authentication_type = 2 AND name = 'gclservice'"
+    $query = "SELECT result = 1 FROM sys.database_principals WHERE authentication_type = 2 AND name = '$sqlServiceUserName'"
     $command = New-Object -TypeName System.Data.SqlClient.SqlCommand($query, $connection)
     $connection.Open()
     $result = $command.ExecuteScalar()
@@ -272,7 +272,7 @@ function Create-DestinationDirectories([string]$root, [string]$targetVersion){
         New-Item $platformHostCpexData -ItemType Directory
     }
     
-    $gclTarget = "$root\$targetVersion"
+    $targetDirectory = "$root\$targetVersion"
 
     if((Test-Path $root) -ne $true){
         New-Item $root -type directory
@@ -280,10 +280,10 @@ function Create-DestinationDirectories([string]$root, [string]$targetVersion){
         Write-Output "$root Exists"
     }
 
-    if((Test-Path $gclTarget) -ne $true){
-        New-Item $gclTarget -type directory
+    if((Test-Path $targetDirectory) -ne $true){
+        New-Item $targetDirectory -type directory
     }else{
-        Write-Output "$gclTarget Exists"
+        Write-Output "$targetDirectory Exists"
     }
 }
 
