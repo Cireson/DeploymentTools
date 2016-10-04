@@ -16,7 +16,10 @@ function DownloadFile([System.Uri]$uri, $destinationDirectory){
     $webclient.DownloadFile($uri,$destinationFile)
 }
 
+$addExtensionVersion = "1.0.1"
+
 function Ready-DeploymentEnvironment([hashtable]$deploymentVariables){
+	Write-Host "Version $addExtensionVersion"
     $session = Create-RemoteSession $deploymentVariables.targetMachineHostName $deploymentVariables.targetMachineUserName $deploymentVariables.targetMachinePassword
     
 	$agentReleaseDirectory = $deploymentVariables.agentReleaseDirectory
