@@ -16,6 +16,7 @@
 }
 
 function Remove-RunningService([string]$serviceName){
+	Write-Host "Function Version 1.0.1"
     $service = Get-WmiObject -Class Win32_Service -Filter "Name='$serviceName'"
     if($service -ne $null){
         "********Service $serviceName Found********"
@@ -42,7 +43,7 @@ function Remove-RunningService([string]$serviceName){
             }
 
             if($complete -eq $false){
-                throw "Unable to stop $serviceName"
+				Stop-Process -processname "Cireson.Platform.Host" -Force
             }
         }
 
