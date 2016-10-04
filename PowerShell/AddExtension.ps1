@@ -89,6 +89,11 @@ function Ready-TargetEnvironment([hashtable]$deploymentVariables){
 
         Get-PowerShellVersion
 
-		Restart-Service -DisplayName "Platform_$serviceName"
+		try{
+			Restart-Service -DisplayName "Platform_$serviceName"
+		}catch{
+			Stop-Process -processname "Cireson.Platform.Host" -Force
+			Restart-Service -DisplayName "Platform_$serviceName"
+		}
     }
 }
