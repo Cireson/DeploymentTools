@@ -7,7 +7,9 @@
 
 function Download-Extension($name, $version, $feedName, $account, $vstsAuth){
 	Write-Host "************************************************************************"
-	Write-Host "Download-Extension Version 1.0.1"
+	Write-Host "Download-Extension Version 1.0.2"
+
+	$cpexDestination = Get-InstallableCpexDirectory
 
 	if($feedName -eq "nuget.org"){
         $baseNugetUri = "https://www.nuget.org/api/v2/package"
