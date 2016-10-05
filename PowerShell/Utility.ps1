@@ -1,12 +1,24 @@
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-function Download-File([System.Uri]$uri, $destinationDirectory){
-    $fileName = $uri.Segments[$uri.Segments.Count-1]
-    $destinationFile = Join-Path $destinationDirectory $fileName
+function Download-File([System.Uri]$uri, $destinationDirectory, $basicAuthValue, $fileName){
+	Write-Host "************************************************************************"
+	Write-Host "Download-File Version 1.0.0"
 
-    "Downloading $uri to $destinationFile"
+	if($fileName -ne $null){
+        $destinationFile = Join-Path $destinationDirectory $fileName
+    }else{
+        $fileName = $uri.Segments[$uri.Segments.Count-1]
+        $destinationFile = Join-Path $destinationDirectory $fileName
+    }
+
+    Write-Host "Downloading $uri to $destinationFile"
 
     $webclient = New-Object System.Net.WebClient
+
+	if($basicAuthValue -ne $null){
+        $webclient.Headers.Add("Authorization", $basicAuthValue)
+    }
+
     $webclient.DownloadFile($uri,$destinationFile)
 }
 
