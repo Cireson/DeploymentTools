@@ -62,12 +62,12 @@ function Ensure-EmptyRemoteDirectoryExists($session, $directory){
 
 function Remove-RunningService([string]$serviceName){
 	Write-Host "************************************************************************"
-	Write-Host "Remove-RunningService Version 1.0.2"
+	Write-Host "Remove-RunningService Version 1.0.3"
 
 	$processName = "Cireson.Platform.Host"
 
     $service = Get-WmiObject -Class Win32_Service -Filter "Name='$serviceName'"
-	$process = Get-Process -Name $processName
+	$process = Get-Process -Name $processName -ErrorAction SilentlyContinue
     if($service -ne $null){
         $service
         $complete = $false
