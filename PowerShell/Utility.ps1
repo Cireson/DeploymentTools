@@ -16,9 +16,12 @@ function Unzip-File([string]$zipfile, [string]$outpath)
 }
 
 function Get-PowerShellVersion(){
-    "Running PowerShell Version"
     "************************************************************************"
-    $PSVersionTable.PSVersion
+	Write-Host "Get-PowerShellVersion Version 1.0.0"
+	$powershellInfo = $PSVersionTable.PSVersion
+	$major = $powershellInfo.Major
+	$minor = $powershellInfo.Minor
+	Write-Host "Running PowerShell Version $major.$minor"
     "************************************************************************"
 }
 
