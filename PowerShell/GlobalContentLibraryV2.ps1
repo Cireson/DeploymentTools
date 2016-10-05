@@ -28,7 +28,7 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $dependentPackages){
 	$ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "Start-Deployment Version 2.0.8" -ForegroundColor Yellow
+	Write-Host "Start-Deployment Version 2.0.9" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -125,8 +125,6 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
         Create-ServiceUser -serviceUserName $onDeploymentVariables.serviceUserName -servicePassword $onDeploymentVariables.serviceUserPassword
 
         Download-Platform -baseDirectory $productDirectory -platformVersion $onDeploymentVariables.platformVersion -targetDirectory $targetDirectory
-
-		Download-Extension -name "" -version "" -feed "prerelease" -account "Cireson"
 
         Update-PlatformConfig -targetDirectory $targetDirectory -connectionString $connectionString
 
