@@ -22,7 +22,6 @@ function Get-PowerShellVersion(){
 	$major = $powershellInfo.Major
 	$minor = $powershellInfo.Minor
 	Write-Host "Running PowerShell Version $major.$minor"
-    "************************************************************************"
 }
 
 function Create-RemoteSession($machineHostName, $machineUserName, $machinePassword){

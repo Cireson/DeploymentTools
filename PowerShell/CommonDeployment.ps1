@@ -16,20 +16,24 @@
 }
 
 function Remove-RunningService([string]$serviceName){
-	Write-Host "Function Version 1.0.1"
-    $service = Get-WmiObject -Class Win32_Service -Filter "Name='$serviceName'"
-    if($service -ne $null){
-        "********Service $serviceName Found********"
-        $service
+	Write-Host "************************************************************************"
+	Write-Host "Remove-RunningService Version 1.0.2"
 
+	$processName = "Cireson.Platform.Host"
+
+    $service = Get-WmiObject -Class Win32_Service -Filter "Name='$serviceName'"
+	$process = Get-Process -Name $processName
+    if($service -ne $null){
+        $service
         $complete = $false
 
         if($service.Status -eq "Degraded"){
-            "********Service Degraded, Stopping Process********"
-            Stop-Process -processname "Cireson.Platform.Host" -Force
+			Write-Host "Service degraded."
+			Write-Host "Stopping process '$processName'."
+            Stop-Process -processname $processName -Force
         }
         elseif($service.State -ne "Stopped"){
-            "********Stopping $serviceName  Service********"
+            Write-Host "Stopping $serviceName."
             $failed = 0
         
             while($complete -ne $true -and $failed -lt 5){
@@ -43,19 +47,31 @@ function Remove-RunningService([string]$serviceName){
             }
 
             if($complete -eq $false){
-				Stop-Process -processname "Cireson.Platform.Host" -Force
+				Write-Host "Failed to stop service."
+				Write-Host "Stopping process '$processName'."
+				Stop-Process -processname $processName -Force
             }
         }
 
-        "********Removing $serviceName Service********"
-        "ReturnValue 0 - The request was accepted"
-        "ReturnValue 16 - This service is being removed from the system."
-        "More: https://msdn.microsoft.com/en-us/library/aa389960(v=vs.85).aspx"
+        Write-Host "Deleting service $serviceName."
+        Write-Host "ReturnValue 0 - The request was accepted"
+        Write-Host "ReturnValue 16 - This service is being removed from the system."
+        Write-Host "More: https://msdn.microsoft.com/en-us/library/aa389960(v=vs.85).aspx"
         $result = $service.delete()
         $result
- 
-    }else{
-        "********$serviceName not Found********"
+
+		if($process -ne $null){
+			Write-Host "Stopping process '$processName'."
+			Stop-Process -processname $processName -Force
+		}
+    }elseif($process -ne $null){
+		Write-Host "$serviceName was not found."
+		Write-Host "Stopping process '$processName'."
+		Stop-Process -processname $processName -Force
+	}
+	else{
+        Write-Host "$serviceName was not found."
+		Write-Host "Process '$processName' was not found."
     }
 }
 
@@ -228,8 +244,7 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 			"File Name: $onFileName"
 			"Version: $onVersion"
 
-			$commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
-			$platformHostCpexData = "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
+			$platformHostCpexData = Get-InstallableCpexDirectory
 			Write-Output "Remove All Files From $platformHostCpexData"	
 			Remove-Item -Path "$platformHostCpexData\*.*" -recurse -force 
 			
@@ -243,6 +258,11 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 		"----Remove Blob from Temp Azure Storage----"
 		Remove-AzureStorageBlob -Blob $nuGet.Name -Container $tempContainerName -Context $storageContext
 	}
+}
+
+function Get-InstallableCpexDirectory(){
+	$commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
+	return "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
 }
 
 function Create-ServiceUser($serviceUserName, $servicePassword){
@@ -267,8 +287,7 @@ function Create-ServiceUser($serviceUserName, $servicePassword){
 }
 
 function Create-DestinationDirectories([string]$root, [string]$targetVersion){
-    $commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
-    $platformHostCpexData = "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
+    $platformHostCpexData = Get-InstallableCpexDirectory
     if((Test-Path $platformHostCpexData) -ne $true){
         New-Item $platformHostCpexData -ItemType Directory
     }
