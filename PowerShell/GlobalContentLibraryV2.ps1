@@ -28,7 +28,7 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $dependentPackages){
 	$ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "Start-Deployment Version 2.0.10" -ForegroundColor Yellow
+	Write-Host "Start-Deployment Version 2.0.11" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -89,7 +89,7 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
 
 	Create-ContainedDatabaseUser -connectionString $adminConnectionString -sqlServiceUserName $deploymentVariables.azureSqlUserName -sqlServiceUserPassword $deploymentVariables.azureSqlUserPassword
 
-	Copy-NuGets $deploymentVariables.resourceGroupName $deploymentVariables.storageAccountName $deploymentVariables.productRoot $deploymentVariables.storageTempContainerName $session $deploymentVariables.agentReleaseDirectory $deploymentVariables.buildDefinitionName
+	Copy-NuGets $deploymentVariables.resourceGroupName $deploymentVariables.storageAccountName $deploymentVariables.productRoot $deploymentVariables.storageTempContainerName $session $deploymentVariables.agentReleaseDirectory $deploymentVariables.buildDefinitionName $deploymentScripts $remotePowerShellLocation
 
 	Invoke-Command -Session $session -ScriptBlock{
 		Write-Host "************************************************************************"

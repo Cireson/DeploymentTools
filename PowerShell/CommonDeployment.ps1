@@ -281,9 +281,9 @@ function Start-RemotePlatform($session, $deploymentVariables){
 	Write-Host "End Start-RemotePlatform" -ForegroundColor Green
 }
 
-function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session, $agentReleaseDirectory, $buildDefinitionName){
+function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session, $agentReleaseDirectory, $buildDefinitionName, $deploymentScripts, $remotePowerShellLocation){
 	Write-Host "************************************************************************"
-	Write-Host "Copy-NuGets Version 1.0.0"
+	Write-Host "Copy-NuGets Version 1.0.1"
 
 	Import-Module -Name Azure
 
@@ -310,10 +310,19 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 			$onBlobUri = $Using:blobUri
 			$onFileName = $Using:nuget.Name
 			$onVersion = $Using:version
+			$onRemotePowerShellLocation = $Using:remotePowerShellLocation
+			$onDeploymentScripts = $Using:deploymentScripts
 
 			"Blob URI: $onBlobUri"
 			"File Name: $onFileName"
 			"Version: $onVersion"
+
+			foreach($uri in $onDeploymentScripts){
+				$fileName = $uri.Segments[$uri.Segments.Count-1]
+				$module = "$onRemotePowerShellLocation\$fileName"
+				Write-Host "`tImporting module $module" -ForegroundColor Green
+				Import-Module $module
+			}
 
 			$platformHostCpexData = Get-InstallableCpexDirectory
 			Write-Output "Remove All Files From $platformHostCpexData"	
