@@ -1,4 +1,11 @@
-﻿function Download-Extension($name, $version, $feedName, $account, $vstsAuth){
+﻿function Get-InstallableCpexDirectory(){
+	Write-Host "************************************************************************"
+	Write-Host "Get-InstallableCpexDirectory Version 1.0.0"
+	$commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
+	return "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
+}
+
+function Download-Extension($name, $version, $feedName, $account, $vstsAuth){
 	Write-Host "************************************************************************"
 	Write-Host "Download-Extension Version 1.0.0"
 
@@ -322,13 +329,6 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 		"----Remove Blob from Temp Azure Storage----"
 		Remove-AzureStorageBlob -Blob $nuGet.Name -Container $tempContainerName -Context $storageContext
 	}
-}
-
-function Get-InstallableCpexDirectory(){
-	Write-Host "************************************************************************"
-	Write-Host "Get-InstallableCpexDirectory Version 1.0.0"
-	$commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
-	return "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
 }
 
 function Create-ServiceUser($serviceUserName, $servicePassword){
