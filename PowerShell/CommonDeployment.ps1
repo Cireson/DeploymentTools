@@ -69,7 +69,7 @@ function Ensure-EmptyRemoteDirectoryExists($session, $directory){
 
 function Remove-RunningService([string]$serviceName){
 	Write-Host "************************************************************************"
-	Write-Host "Remove-RunningService Version 1.0.3"
+	Write-Host "Remove-RunningService Version 1.0.4"
 
 	$processName = "Cireson.Platform.Host"
 
@@ -112,6 +112,7 @@ function Remove-RunningService([string]$serviceName){
         $result = $service.delete()
         $result
 
+		$process = Get-Process -Name $processName -ErrorAction SilentlyContinue
 		if($process -ne $null){
 			Write-Host "Stopping process '$processName'."
 			Stop-Process -processname $processName -Force
