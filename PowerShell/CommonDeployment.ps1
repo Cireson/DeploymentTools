@@ -1,4 +1,46 @@
-﻿function Ensure-EmptyRemoteDirectoryExists($session, $directory){
+﻿function Download-Extension($name, $version, $feedName, $account, $vstsAuth){
+	Write-Host "************************************************************************"
+	Write-Host "Download-Extension Version 1.0.0"
+
+	$cpexDestination = Get-InstallableCpexDirectory
+
+    if($feedName -eq "nuget.org"){
+        $getNupkgUri = "https://www.nuget.org/api/v2/package/$name/$version"
+        Download-File -uri $getNupkgUri -destinationDirectory $cpexDestination -fileName "$name.$version.nupkg"
+    }else{
+        $apiVersion = "2.0-preview.1"
+	    $getPackagesUri = "https://$account.feeds.VisualStudio.com/DefaultCollection/_apis/packaging/feeds/$feedName/packages?api-version=$apiVersion"
+
+        $response = Invoke-RestMethod -Method Get -Uri $getPackagesUri -Headers @{Authorization = $vstsAuth.BasicAuthHeader } -Credential $vstsAuth.Credential -ContentType "application/json"
+        $package = $response.value | Where-Object{ $_.name -eq $name}
+
+        $getFeedUri = "https://$account.feeds.visualstudio.com/DefaultCollection/_apis/packaging/feeds/${feedName}?api-version=$apiVersion"
+        $response = Invoke-RestMethod -Method Get -Uri $getFeedUri -Headers @{Authorization = $vstsAuth.BasicAuthHeader } -Credential $vstsAuth.Credential -ContentType "application/json"
+        $feedId = $response.id
+
+        #https://www.visualstudio.com/en-us/docs/integrate/api/packaging/nuget#download-package - Not for programmatic access?!
+        #$getNupkgUri = "https://$account.pkgs.visualstudio.com/defaultcollection/_apis/packaging/feeds/$feedName/nuget/packages/$name/versions/$version/content?api-version=3.0-preview.1"
+        #$response = Invoke-RestMethod -Method Get -Uri $getNupkgUri -Headers @{Authorization = $vstsAuth.BasicAuthHeader } -Credential $vstsAuth.Credential -ContentType "application/json"
+
+        # Format stolen from the way Visual Studio laods packages
+        $getNupkgUri = "https://$account.pkgs.visualstudio.com/_packaging/$feedId/nuget/v3/flat2/$name/$version/$name.$version.nupkg"
+        Download-File -uri $getNupkgUri -destinationDirectory $cpexDestination -basicAuthValue $vstsAuth.BasicAuthHeader
+    }
+}
+
+function Create-AuthForVsts($userName, $password){
+	Write-Host "************************************************************************"
+	Write-Host "Create-AuthForVsts Version 1.0.0"
+	$securePassword = ConvertTo-SecureString –String $password –AsPlainText -Force
+	$base64Credential = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password)))
+	$securePassword = ConvertTo-SecureString –String $password –AsPlainText -Force
+	$credential = New-Object –TypeName "System.Management.Automation.PSCredential" –ArgumentList $username, $securePassword
+	return @{
+		BasicAuthHeader = "Basic $base64Credential"
+		Credential = $credential
+	}
+}
+function Ensure-EmptyRemoteDirectoryExists($session, $directory){
 	$ErrorActionPreference = "Stop"
 
 	Invoke-Command -Session $session -ScriptBlock{ 
@@ -261,6 +303,8 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 }
 
 function Get-InstallableCpexDirectory(){
+	Write-Host "************************************************************************"
+	Write-Host "Get-InstallableCpexDirectory Version 1.0.0"
 	$commonApplicationData = [Environment]::GetFolderPath("CommonApplicationData")
 	return "$commonApplicationData\Cireson.Platform.Host\InstallableCpex"
 }
