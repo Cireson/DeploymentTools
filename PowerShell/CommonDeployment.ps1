@@ -40,8 +40,11 @@ function Create-AuthForVsts($userName, $password){
 		Credential = $credential
 	}
 }
+
 function Ensure-EmptyRemoteDirectoryExists($session, $directory){
 	$ErrorActionPreference = "Stop"
+	Write-Host "************************************************************************"
+	Write-Host "Ensure-EmptyRemoteDirectoryExists Version 1.0.0"
 
 	Invoke-Command -Session $session -ScriptBlock{ 
 		$ErrorActionPreference = "Stop"
@@ -118,6 +121,8 @@ function Remove-RunningService([string]$serviceName){
 }
 
 function Create-InboundFirewallRule($displayName, $port){
+	Write-Host "************************************************************************"
+	Write-Host "Create-InboundFirewallRule Version 1.0.0"
     $rule = Get-NetFirewallRule | Where-Object {$_.DisplayName -eq $displayName}
     if($rule -eq $null){
         New-NetFirewallRule -DisplayName $displayName -Direction Inbound -Action Allow -Protocol "TCP" -LocalPort $port
@@ -129,15 +134,21 @@ function Create-InboundFirewallRule($displayName, $port){
 }
 
 function AddUserToGroup([string]$groupName,[string]$user){
+	Write-Host "************************************************************************"
+	Write-Host "AddUserToGroup Version 1.0.0"
     $Group = [ADSI]"WinNT://localhost/$groupName,group"   
     $Group.Add("WinNT://$user,user")
 }
  
 function Create-PlatformConnectionString([string]$sqlServer, [string]$sqlDatabase, [string]$sqlUserName, [string]$sqlPassword){
+	Write-Host "************************************************************************"
+	Write-Host "Create-PlatformConnectionString Version 1.0.0"
     return "Server=tcp:$sqlServer.database.windows.net,1433;Data Source=$sqlServer.database.windows.net;Initial Catalog=$sqlDatabase;Persist Security Info=False;User ID=$sqlUserName;Password=$sqlPassword;Encrypt=True;Connection Timeout=30;"
 }
 
 function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlServiceUserName, [string]$sqlServiceUserPassword){
+	Write-Host "************************************************************************"
+	Write-Host "Create-ContainedDatabaseUser Version 1.0.0"
     $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection($connectionString)
     $query = "SELECT result = 1 FROM sys.database_principals WHERE authentication_type = 2 AND name = '$sqlServiceUserName'"
     $command = New-Object -TypeName System.Data.SqlClient.SqlCommand($query, $connection)
@@ -157,7 +168,9 @@ function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlSer
 }
 
 function Create-TargetDirectory($rootDirectory, $targetVersion){
-    $targetDirectory = "$rootDirectory\$targetVersion"
+    Write-Host "************************************************************************"
+	Write-Host "Create-TargetDirectory Version 1.0.0"
+	$targetDirectory = "$rootDirectory\$targetVersion"
     if((Test-Path $targetDirectory) -ne $true){
         $newItem = New-Item $targetDirectory -type directory
         Write-Host "Created $targetDirectory"    
@@ -169,7 +182,9 @@ function Create-TargetDirectory($rootDirectory, $targetVersion){
 }
 
 function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
-    $platformBaseDirectory = "$baseDirectory\platform"
+    Write-Host "************************************************************************"
+	Write-Host "Download-Platform Version 1.0.0"
+	$platformBaseDirectory = "$baseDirectory\platform"
       if((Test-Path $platformBaseDirectory) -ne $true){
           New-Item $platformBaseDirectory -type directory    
       }
@@ -220,7 +235,9 @@ function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
 }
 
 function Update-PlatformConfig($targetDirectory, $connectionString){
-    $configPath = "$targetDirectory\Cireson.Platform.Host.exe.config"
+    Write-Host "************************************************************************"
+	Write-Host "Update-PlatformConfig Version 1.0.0"
+	$configPath = "$targetDirectory\Cireson.Platform.Host.exe.config"
     [xml]$configFile = Get-Content $configPath
     $cstring = (($configFile.configuration.connectionStrings).add | where {$_.name -eq "CiresonDatabase"})
     $cstring.connectionString = $connectionString
@@ -228,6 +245,8 @@ function Update-PlatformConfig($targetDirectory, $connectionString){
 }
 
 function Start-RemotePlatform($session, $deploymentVariables){
+	Write-Host "************************************************************************"
+	Write-Host "Start-RemotePlatform Version 1.0.0"
 	Write-Host "Begin Start-RemotePlatform" -ForegroundColor Green
 
 	Invoke-Command -Session $session -ScriptBlock{ 
@@ -256,6 +275,9 @@ function Start-RemotePlatform($session, $deploymentVariables){
 }
 
 function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session, $agentReleaseDirectory, $buildDefinitionName){
+	Write-Host "************************************************************************"
+	Write-Host "Copy-NuGets Version 1.0.0"
+
 	Import-Module -Name Azure
 
 	$storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $resourceGroupName| Where-Object{ $_.StorageAccountName -eq $storageAccountName}
@@ -310,7 +332,9 @@ function Get-InstallableCpexDirectory(){
 }
 
 function Create-ServiceUser($serviceUserName, $servicePassword){
-  $user = Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "LocalAccount='$True'" | Where-Object { $_.Name -eq $serviceUserName}
+  Write-Host "************************************************************************"
+	Write-Host "Create-ServiceUser Version 1.0.0"
+	$user = Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "LocalAccount='$True'" | Where-Object { $_.Name -eq $serviceUserName}
   if($user -eq $null){
     "Creating User $serviceUserName($servicePassword)"
     NET USER $serviceUserName $servicePassword /ADD
@@ -331,6 +355,8 @@ function Create-ServiceUser($serviceUserName, $servicePassword){
 }
 
 function Create-DestinationDirectories([string]$root, [string]$targetVersion){
+	Write-Host "************************************************************************"
+	Write-Host "Create-DestinationDirectories Version 1.0.0"
     $platformHostCpexData = Get-InstallableCpexDirectory
     if((Test-Path $platformHostCpexData) -ne $true){
         New-Item $platformHostCpexData -ItemType Directory
@@ -352,6 +378,8 @@ function Create-DestinationDirectories([string]$root, [string]$targetVersion){
 }
 
 function Push-RemoteDeploymentScripts($session, $uris, $remotePowerShellLocation){
+	Write-Host "************************************************************************"
+	Write-Host "Push-RemoteDeploymentScripts Version 1.0.0"
 	Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
 		$onUris = $Using:uris
