@@ -7,7 +7,7 @@
 
 function Download-Extension($name, $version, $feedName, $account, $vstsAuth){
 	Write-Host "************************************************************************"
-	Write-Host "Download-Extension Version 1.0.2"
+	Write-Host "Download-Extension Version 1.0.3"
 
 	$cpexDestination = Get-InstallableCpexDirectory
 
@@ -43,6 +43,9 @@ function Download-Extension($name, $version, $feedName, $account, $vstsAuth){
         # Format stolen from the way Visual Studio laods packages
         $getNupkgUri = "https://$account.pkgs.visualstudio.com/_packaging/$feedId/nuget/v3/flat2/$name/$version/$name.$version.nupkg"
         Download-File -uri $getNupkgUri -destinationDirectory $cpexDestination -basicAuthValue $vstsAuth.BasicAuthHeader
+
+		Write-Host "Destination Contains"
+		ls $cpexDestination
     }
 }
 
