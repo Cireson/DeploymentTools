@@ -25,9 +25,10 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 	Write-Host "End Get-DeploymentScripts" -ForegroundColor Green
 }
 
-function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
+function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $dependentPackages){
 	$ErrorActionPreference = "Stop"
-	Write-Host "Version 1.0.1" -ForegroundColor Yellow
+	Write-Host "************************************************************************"
+	Write-Host "Start-Deployment Version 1.0.2" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -50,6 +51,10 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 		azureSqlAdministratorUserName = $Env:azureSqlAdministratorUserName
 		azureSqlAdministratorPassword = $Env:azureSqlAdministratorPassword
 		targetVersion = $env:BUILD_BUILDNUMBER
+		vstsAccountName = $Env:vstsAccountName
+		vstsApiUserName = $Env:vstsApiUserName
+		vstsApiPassword = $Env:vstsApiPassword
+		dependentPackages = $dependentPackages
 	}
 
 	Write-Host "Environment Variables Copied to HashTable`r`n" -ForegroundColor Green
@@ -84,7 +89,10 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 
 	Create-ContainedDatabaseUser -connectionString $adminConnectionString -sqlServiceUserName $deploymentVariables.azureSqlUserName -sqlServiceUserPassword $deploymentVariables.azureSqlUserPassword
 
+	Copy-NuGets $deploymentVariables.resourceGroupName $deploymentVariables.storageAccountName $deploymentVariables.productRoot $deploymentVariables.storageTempContainerName $session $deploymentVariables.agentReleaseDirectory $deploymentVariables.buildDefinitionName $deploymentScripts $remotePowerShellLocation
+
 	Invoke-Command -Session $session -ScriptBlock{ 
+		Write-Host "************************************************************************"
         $ErrorActionPreference = "Stop"
         $onDeploymentVariables = $Using:deploymentVariables
         $onRemotePowerShellLocation = $Using:remotePowerShellLocation
@@ -92,6 +100,7 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
 
         $productDirectory = $onDeploymentVariables.productRoot
         $serviceName = $onDeploymentVariables.serviceName
+		Write-Host "Running on remote machine, $targetMachineHostName."
 
         foreach($uri in $onDeploymentScripts){
 			$fileName = $uri.Segments[$uri.Segments.Count-1]
@@ -117,9 +126,14 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName){
         Download-Platform -baseDirectory $productDirectory -platformVersion $onDeploymentVariables.platformVersion -targetDirectory $targetDirectory
 
         Update-PlatformConfig -targetDirectory $targetDirectory -connectionString $connectionString
-    }
 
-	Copy-NuGets $deploymentVariables.resourceGroupName $deploymentVariables.storageAccountName $deploymentVariables.productRoot $deploymentVariables.storageTempContainerName $session $deploymentVariables.agentReleaseDirectory $deploymentVariables.buildDefinitionName
+		$vstsAuth = Create-AuthForVsts -userName $onDeploymentVariables.vstsApiUserName -password $onDeploymentVariables.vstsApiPassword
+		foreach($package in $onDeploymentVariables.dependentPackages){
+			Download-Extension -name $package.Name -version $package.Version -feedName $package.FeedName -account $onDeploymentVariables.vstsAccountName -vstsAuth $vstsAuth    
+		}
+
+		Write-Host "End running on remote machine, $targetMachineHostName."
+    }
 
 	Start-RemotePlatform -session $session -deploymentVariables $deploymentVariables
 }
