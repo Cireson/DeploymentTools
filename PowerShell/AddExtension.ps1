@@ -29,7 +29,7 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $dependentPackages){
 	$ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "Start-Deployment Version 2.0.0" -ForegroundColor Yellow
+	Write-Host "Start-Deployment Version 2.0.1" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -110,10 +110,8 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
 
         Get-PowerShellVersion
 
-        Remove-RunningService -serviceName "Platform_$serviceName"
-
 		Write-Host "End running on remote machine, $targetMachineHostName."
     }
 
-	Start-RemotePlatform -session $session -deploymentVariables $deploymentVariables
+	Restart-RemotePlatform -session $session -deploymentVariables $deploymentVariables
 }

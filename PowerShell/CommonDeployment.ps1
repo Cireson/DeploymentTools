@@ -296,6 +296,35 @@ function Start-RemotePlatform($session, $deploymentVariables){
 	Write-Host "End Start-RemotePlatform" -ForegroundColor Green
 }
 
+function Restart-RemotePlatform($session, $deploymentVariables){
+	Write-Host "************************************************************************"
+	Write-Host "Restart-RemotePlatform Version 1.0.0"
+
+	Invoke-Command -Session $session -ScriptBlock{ 
+        $ErrorActionPreference = "Stop"
+        $onDeploymentVariables = $Using:deploymentVariables
+
+		$serviceName = $onDeploymentVariables.serviceName
+		$processName = "Cireson.Platform.Host"
+
+		$service = Get-WmiObject -Class Win32_Service -Filter "Name='$serviceName'"
+		$process = Get-Process -Name $processName -ErrorAction SilentlyContinue
+
+		if($service -eq $null){
+			Write-Host "Service, $serviceName, not found. Redeploy target product."
+		}else{
+			try{
+				Restart-Service -DisplayName $serviceName
+			}catch{
+				Write-Host "$serviceName failed to restart."
+				Write-Host "Stopping process '$processName'."
+				Stop-Process -processname $processName -Force
+				Start-Service -DisplayName $serviceName
+			}
+		}
+    }
+}
+
 function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session, $agentReleaseDirectory, $buildDefinitionName, $deploymentScripts, $remotePowerShellLocation){
 	Write-Host "************************************************************************"
 	Write-Host "Copy-NuGets Version 1.0.1"
