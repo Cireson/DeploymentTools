@@ -298,27 +298,26 @@ function Start-RemotePlatform($session, $deploymentVariables){
 
 function Restart-RemotePlatform($session, $serviceName){
 	Write-Host "************************************************************************"
-	Write-Host "Restart-RemotePlatform Version 1.0.3"
+	Write-Host "Restart-RemotePlatform Version 1.0.4"
 
 	Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
 		$processName = "Cireson.Platform.Host"
+		$onServiceName = $Using:serviceName
 
-		Write-Host "ServiceName: $serviceName"
-
-		$service = Get-WmiObject -Class Win32_Service -Filter "Name='$serviceName'"
+		$service = Get-WmiObject -Class Win32_Service -Filter "Name='$onServiceName'"
 		$process = Get-Process -Name $processName -ErrorAction SilentlyContinue
 
 		if($service -eq $null){
-			Write-Host "Service, $serviceName, not found. Redeploy target product."
+			Write-Host "Service, $onServiceName, not found. Redeploy target product."
 		}else{
 			try{
-				Restart-Service -DisplayName $serviceName
+				Restart-Service -DisplayName $onServiceName
 			}catch{
-				Write-Host "$serviceName failed to restart."
+				Write-Host "$onServiceName failed to restart."
 				Write-Host "Stopping process '$processName'."
 				Stop-Process -processname $processName -Force
-				Start-Service -DisplayName $serviceName
+				Start-Service -DisplayName $onServiceName
 			}
 		}
     }
