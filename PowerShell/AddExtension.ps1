@@ -29,7 +29,7 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $dependentPackages){
 	$ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "Start-Deployment Version 2.0.1" -ForegroundColor Yellow
+	Write-Host "Start-Deployment Version 2.0.2" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -44,17 +44,9 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
 		buildDefinitionName = $Env:BUILD_DEFINITIONNAME
 		serviceUserName = $Env:serviceUserName
 		serviceUserPassword = $Env:serviceUserPassword
-		azureSqlServerName = $Env:azureSqlServerName
-		azureSqlUserName = $Env:azureSqlUserName
-		azureSqlUserPassword = $Env:azureSqlUserPassword
-		azureSqlDatabase = $Env:azureSqlDatabase
-		platformVersion = $Env:platformVersion
 		azureSqlAdministratorUserName = $Env:azureSqlAdministratorUserName
 		azureSqlAdministratorPassword = $Env:azureSqlAdministratorPassword
 		targetVersion = $env:BUILD_BUILDNUMBER
-		vstsAccountName = $Env:vstsAccountName
-		vstsApiUserName = $Env:vstsApiUserName
-		vstsApiPassword = $Env:vstsApiPassword
 		dependentPackages = $dependentPackages
 	}
 
@@ -113,5 +105,6 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
 		Write-Host "End running on remote machine, $targetMachineHostName."
     }
 
-	Restart-RemotePlatform -session $session -deploymentVariables $deploymentVariables
+	$serviceName = $deploymentVariables.serviceName
+	Restart-RemotePlatform -session $session -serviceName "Platform_$serviceName"
 }

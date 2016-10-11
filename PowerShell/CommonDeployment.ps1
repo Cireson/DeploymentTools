@@ -296,15 +296,12 @@ function Start-RemotePlatform($session, $deploymentVariables){
 	Write-Host "End Start-RemotePlatform" -ForegroundColor Green
 }
 
-function Restart-RemotePlatform($session, $deploymentVariables){
+function Restart-RemotePlatform($session, $serviceName){
 	Write-Host "************************************************************************"
-	Write-Host "Restart-RemotePlatform Version 1.0.0"
+	Write-Host "Restart-RemotePlatform Version 1.0.1"
 
 	Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
-        $onDeploymentVariables = $Using:deploymentVariables
-
-		$serviceName = $onDeploymentVariables.serviceName
 		$processName = "Cireson.Platform.Host"
 
 		$service = Get-WmiObject -Class Win32_Service -Filter "Name='$serviceName'"
