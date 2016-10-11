@@ -298,11 +298,13 @@ function Start-RemotePlatform($session, $deploymentVariables){
 
 function Restart-RemotePlatform($session, $serviceName){
 	Write-Host "************************************************************************"
-	Write-Host "Restart-RemotePlatform Version 1.0.2"
+	Write-Host "Restart-RemotePlatform Version 1.0.3"
 
 	Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
 		$processName = "Cireson.Platform.Host"
+
+		Write-Host "ServiceName: $serviceName"
 
 		$service = Get-WmiObject -Class Win32_Service -Filter "Name='$serviceName'"
 		$process = Get-Process -Name $processName -ErrorAction SilentlyContinue
