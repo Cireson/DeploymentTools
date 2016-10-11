@@ -298,7 +298,7 @@ function Start-RemotePlatform($session, $deploymentVariables){
 
 function Restart-RemotePlatform($session, $serviceName){
 	Write-Host "************************************************************************"
-	Write-Host "Restart-RemotePlatform Version 1.0.1"
+	Write-Host "Restart-RemotePlatform Version 1.0.2"
 
 	Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
