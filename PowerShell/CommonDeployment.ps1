@@ -268,7 +268,7 @@ function Update-PlatformConfig($targetDirectory, $connectionString){
 
 function Start-RemotePlatform($session, $deploymentVariables){
 	Write-Host "************************************************************************"
-	Write-Host "Start-RemotePlatform Version 1.0.0"
+	Write-Host "Start-RemotePlatform Version 1.0.1"
 	Write-Host "Begin Start-RemotePlatform" -ForegroundColor Green
 
 	Invoke-Command -Session $session -ScriptBlock{ 
@@ -280,8 +280,14 @@ function Start-RemotePlatform($session, $deploymentVariables){
 		$serviceName = $onDeploymentVariables.serviceName
 		$serviceUserName = $onDeploymentVariables.serviceUserName
 		$serviceUserPassword = $onDeploymentVariables.serviceUserPassword
+		$sslThumbprint = $onDeploymentVariables.sslThumbPrint
 
 		$platform = "$productDirectory\$deployedVersion\Cireson.Platform.Host.exe"
+
+		$argumentList = "-install", "-sn", $serviceName, "-usr", ".\$serviceUserName", "-pwd", $serviceUserPassword, "-worker"
+		if($sslThumbprint -ne $null){
+			$argumentList = $argumentList + "-u", "http://*:80", "-u","http://*:443", "-ssl", $sslThumbprint
+		}
 
 		if((Test-Path $platform) -eq $false){
 			throw "Platform not found at $platform"
@@ -290,7 +296,7 @@ function Start-RemotePlatform($session, $deploymentVariables){
 		}
 
 		Write-Host "Starting Platfrom at $platform" -ForegroundColor Green
-		start-process $platform -ArgumentList "-install", "-sn", $serviceName, "-usr", ".\$serviceUserName", "-pwd", $serviceUserPassword, "-worker" -wait
+		start-process $platform -ArgumentList $argumentList -wait
     }
 
 	Write-Host "End Start-RemotePlatform" -ForegroundColor Green
