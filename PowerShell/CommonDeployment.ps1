@@ -325,7 +325,7 @@ function Restart-RemotePlatform($session, $serviceName){
 
 function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session, $agentReleaseDirectory, $buildDefinitionName, $deploymentScripts, $remotePowerShellLocation){
 	Write-Host "************************************************************************"
-	Write-Host "Copy-NuGets Version 1.0.1"
+	Write-Host "Copy-NuGets Version 1.0.2"
 
 	Import-Module -Name Azure
 
@@ -333,7 +333,8 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 	"----Storage Account----"
 	$storageAccount
 	$storageAccountKey = Get-AzureRmStorageAccountKey -Name $storageAccount.StorageAccountName -ResourceGroupName $resourceGroupName
-	$storageContext = New-AzureStorageContext -StorageAccountName $storageAccount.StorageAccountName -StorageAccountKey $storageAccountKey.Key1
+    $key = $storageAccountKey | Where-Object{$_.Permissions -eq "FULL"} | Select-Object -First 1
+	$storageContext = New-AzureStorageContext -StorageAccountName $storageAccount.StorageAccountName -StorageAccountKey $key.Value
 	"----Storage Context----"
 	$storageContext
 
