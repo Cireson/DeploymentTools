@@ -27,14 +27,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="ReleaseManager\" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="AddExtension.ps1" />
     <Compile Include="AssetManagement.ps1" />
     <Compile Include="CommonDeployment.ps1" />
     <Compile Include="GlobalContentLibraryV2.ps1" />
-    <Compile Include="ReleaseManager\ReleaseCommon.ps1" />
     <Compile Include="UserRights.ps1" />
     <Compile Include="Utility.ps1" />
   </ItemGroup>
