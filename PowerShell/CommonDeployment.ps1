@@ -286,7 +286,7 @@ function Start-RemotePlatform($session, $deploymentVariables){
 
 		$argumentList = "-install", "-sn", $serviceName, "-usr", ".\$serviceUserName", "-pwd", $serviceUserPassword, "-worker"
 		if($sslThumbprint -ne $null){
-			$argumentList = $argumentList + "-u", "http://*:80", "-u","http://*:443", "-ssl", $sslThumbprint
+			$argumentList = $argumentList + "-u", "http://*:80", "-u","https://*:443", "-ssl", $sslThumbprint
 		}
 
 		if((Test-Path $platform) -eq $false){
