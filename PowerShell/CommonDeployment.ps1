@@ -390,26 +390,34 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 }
 
 function Create-ServiceUser($serviceUserName, $servicePassword){
-  Write-Host "************************************************************************"
+	Write-Host "************************************************************************"
 	Write-Host "Create-ServiceUser Version 1.0.0"
 	$user = Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "LocalAccount='$True'" | Where-Object { $_.Name -eq $serviceUserName}
-  if($user -eq $null){
-    "Creating User $serviceUserName($servicePassword)"
-    NET USER $serviceUserName $servicePassword /ADD
-  }else{
-    "User $serviceUserName Already Exists"
-  }
+	if($user -eq $null){
+		"Creating User $serviceUserName($servicePassword)"
+		NET USER $serviceUserName $servicePassword /ADD
+		$user = Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "LocalAccount='$True'" | Where-Object { $_.Name -eq $serviceUserName}
+	}else{
+		"User $serviceUserName Already Exists"
+	}
 
-  Grant-UserRight $serviceUserName SeServiceLogonRight
+	$userSettings = @{
+		PasswordExpires = 0
+		PasswordChangeable = 0
+	}
 
-  $group = get-wmiobject win32_group -filter "name='Administrators'"
-  $user = $group.GetRelated("win32_useraccount") | Where-Object { $_.Name -eq $serviceUserName}
-  if($user -eq $null){
-    AddUserToGroup -groupName "Administrators" -user $serviceUserName
-    "----Added $serviceUserName to Administrators Group----"
-  }else{
-    "----$serviceUserName Already a Member of Administrators Group----"
-  }
+	Set-WmiInstance -InputObject $user -Argument $userSettings
+
+	Grant-UserRight $serviceUserName SeServiceLogonRight
+
+	$group = get-wmiobject win32_group -filter "name='Administrators'"
+	$user = $group.GetRelated("win32_useraccount") | Where-Object { $_.Name -eq $serviceUserName}
+	if($user -eq $null){
+		AddUserToGroup -groupName "Administrators" -user $serviceUserName
+		"----Added $serviceUserName to Administrators Group----"
+	}else{
+		"----$serviceUserName Already a Member of Administrators Group----"
+	}
 }
 
 function Create-DestinationDirectories([string]$root, [string]$targetVersion){
