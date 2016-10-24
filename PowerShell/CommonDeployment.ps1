@@ -391,7 +391,7 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 
 function Create-ServiceUser($serviceUserName, $servicePassword){
 	Write-Host "************************************************************************"
-	Write-Host "Create-ServiceUser Version 1.0.2"
+	Write-Host "Create-ServiceUser Version 1.0.3"
 	$user = Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "LocalAccount='$True'" | Where-Object { $_.Name -eq $serviceUserName}
 	if($user -eq $null){
 		"Creating User $serviceUserName($servicePassword)"
@@ -404,9 +404,6 @@ function Create-ServiceUser($serviceUserName, $servicePassword){
 	$userSettings = @{
 		PasswordExpires = 0
 	}
-
-	#PasswordChangeable = 0
-
 	Set-WmiInstance -InputObject $user -Argument $userSettings
 
 	Grant-UserRight $serviceUserName SeServiceLogonRight
