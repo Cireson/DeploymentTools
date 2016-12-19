@@ -268,7 +268,7 @@ function Update-PlatformConfig($targetDirectory, $connectionString){
 
 function Start-RemotePlatform($session, $deploymentVariables){
 	Write-Host "************************************************************************"
-	Write-Host "Start-RemotePlatform Version 1.0.2"
+	Write-Host "Start-RemotePlatform Version 1.0.3"
 	Write-Host "Begin Start-RemotePlatform" -ForegroundColor Green
 
 	Invoke-Command -Session $session -ScriptBlock{ 
