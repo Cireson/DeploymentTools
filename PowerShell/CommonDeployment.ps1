@@ -281,10 +281,16 @@ function Start-RemotePlatform($session, $deploymentVariables){
 		$serviceUserName = $onDeploymentVariables.serviceUserName
 		$serviceUserPassword = $onDeploymentVariables.serviceUserPassword
 		$sslThumbprint = $onDeploymentVariables.sslThumbPrint
+		$masterExtension = $onDeploymentVariables.masterExtension
 
 		$platform = "$productDirectory\$deployedVersion\Cireson.Platform.Host.exe"
 
 		$argumentList = "-install", "-sn", $serviceName, "-usr", ".\$serviceUserName", "-pwd", $serviceUserPassword, "-worker"
+
+		if($masterExtension -ne $null){
+			$argumentList = $argumentList + "-masterExtension", $masterExtension
+		}
+
 		if($sslThumbprint -ne $null){
 			$argumentList = $argumentList + "-u", "http://*:80", "-u","https://*:443", "-ssl", $sslThumbprint
 		}

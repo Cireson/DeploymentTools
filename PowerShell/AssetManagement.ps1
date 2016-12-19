@@ -56,6 +56,7 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
 		vstsApiPassword = $Env:vstsApiPassword
 		dependentPackages = $dependentPackages
 		sslThumbprint = $Env:sslThumbPrint
+		masterExtension = $Env:masterExtension
 	}
 
 	Write-Host "Environment Variables Copied to HashTable`r`n" -ForegroundColor Green
