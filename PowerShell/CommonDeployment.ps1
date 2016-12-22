@@ -268,7 +268,7 @@ function Update-PlatformConfig($targetDirectory, $connectionString){
 
 function Start-RemotePlatform($session, $deploymentVariables){
 	Write-Host "************************************************************************"
-	Write-Host "Start-RemotePlatform Version 1.0.3"
+	Write-Host "Start-RemotePlatform Version 1.0.4"
 	Write-Host "Begin Start-RemotePlatform" -ForegroundColor Green
 
 	Invoke-Command -Session $session -ScriptBlock{ 
@@ -281,7 +281,11 @@ function Start-RemotePlatform($session, $deploymentVariables){
 		$serviceUserName = $onDeploymentVariables.serviceUserName
 		$serviceUserPassword = $onDeploymentVariables.serviceUserPassword
 		$sslThumbprint = $onDeploymentVariables.sslThumbPrint
-		$masterExtension = $onDeploymentVariables.masterExtension
+		$masterExtension = $null
+
+		if ($onDeploymentVariables.PSObject.Properties.Match('masterExtension').Count) {
+ 			$masterExtension = $onDeploymentVariables.masterExtension
+		}
 
 		$platform = "$productDirectory\$deployedVersion\Cireson.Platform.Host.exe"
 
