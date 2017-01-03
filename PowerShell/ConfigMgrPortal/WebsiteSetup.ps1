@@ -1,5 +1,6 @@
 Param(
-	$curentValues
+	[Parameter(Position=0)]
+	$currentValues
 )
 
 function CreateOrUpdateWebsite($newWebsitePath){
@@ -119,11 +120,11 @@ function Get-WebsiteDeploymentInfo($version){
 }
 
 Write-Host "************************************************************************"
-Write-Host "WebsiteSetup Version 1.0.4" -ForegroundColor Yellow
+Write-Host "WebsiteSetup Version 1.0.5" -ForegroundColor Yellow
 
-Write-Host "Current Values: $curentValues"
+Write-Host "Current Values: $currentValues"
 
-$version = $curentValues.Version
+$version = $currentValues.Version
 Write-Host "Version: '$version'"
 $websiteInfo = Get-WebsiteDeploymentInfo -version $version
 Copy-Item -Path $websiteInfo.SourcePath -Destination $websiteInfo.DeployPath -Recurse
