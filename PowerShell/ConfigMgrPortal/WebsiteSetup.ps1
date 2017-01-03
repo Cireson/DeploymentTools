@@ -3,7 +3,11 @@ Param(
 )
 
 function CreateOrUpdateWebsite($newWebsitePath){
-    [Void][Reflection.Assembly]::LoadWithPartialName("Microsoft.Web.Administration")
+    $ErrorActionPreference = "Stop"
+	Write-Host "************************************************************************"
+	Write-Host "CreateOrUpdateWebsite Version 1.0.1" -ForegroundColor Yellow
+
+	[Void][Reflection.Assembly]::LoadWithPartialName("Microsoft.Web.Administration")
 
     $currentWebsitePath = ""
     $websiteName = "ConfigMgrPortal"
@@ -50,6 +54,10 @@ function CreateOrUpdateWebsite($newWebsitePath){
 }
 
 function Update-ServiceConfiguration($serviceRoot, $websiteRoot){
+	$ErrorActionPreference = "Stop"
+	Write-Host "************************************************************************"
+	Write-Host "Update-ServiceConfiguration Version 1.0.1" -ForegroundColor Yellow
+
     $configFile = $serviceRoot + "\ConfigMgr Portal Hosting Service.exe.config"
     [xml] $xml = Get-Content $configFile
     $xml.SelectSingleNode("/configuration/appSettings/add[@key='BaseFolder']").value = $websiteRoot
@@ -57,6 +65,10 @@ function Update-ServiceConfiguration($serviceRoot, $websiteRoot){
 }
 
 function Get-WebsiteDeploymentInfo($version){
+	$ErrorActionPreference = "Stop"
+	Write-Host "************************************************************************"
+	Write-Host "Get-WebsiteDeploymentInfo Version 1.0.1" -ForegroundColor Yellow
+
     $websiteDeployPath = "c:\websites"
 
     if((Test-Path -Path $websiteDeployPath) -eq $false){
