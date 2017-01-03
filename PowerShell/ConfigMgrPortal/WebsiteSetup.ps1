@@ -120,11 +120,9 @@ function Get-WebsiteDeploymentInfo($version){
 }
 
 Write-Host "************************************************************************"
-Write-Host "WebsiteSetup Version 1.0.6" -ForegroundColor Yellow
+Write-Host "WebsiteSetup Version 1.0.7" -ForegroundColor Yellow
 
 Write-Host "Current Values: $currentValues"
-$remote = $using:remoteValues;
-Write-Host "Remote Values: $remote"
 
 $version = $currentValues.Version
 Write-Host "Version: '$version'"
