@@ -30,9 +30,14 @@
     <Compile Include="AddExtension.ps1" />
     <Compile Include="AssetManagement.ps1" />
     <Compile Include="CommonDeployment.ps1" />
+    <Compile Include="ConfigMgrPortal\ConfigMgrPortal.ps1" />
+    <Compile Include="ConfigMgrPortal\WebsiteSetup.ps1" />
     <Compile Include="GlobalContentLibraryV2.ps1" />
     <Compile Include="UserRights.ps1" />
     <Compile Include="Utility.ps1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ConfigMgrPortal\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
