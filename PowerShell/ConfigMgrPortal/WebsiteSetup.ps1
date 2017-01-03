@@ -123,6 +123,8 @@ Write-Host "********************************************************************
 Write-Host "WebsiteSetup Version 1.0.5" -ForegroundColor Yellow
 
 Write-Host "Current Values: $currentValues"
+$remote = $using:remoteValues;
+Write-Host "Remote Values: $remote"
 
 $version = $currentValues.Version
 Write-Host "Version: '$version'"

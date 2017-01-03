@@ -75,9 +75,8 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
 
 	$remoteScript = $remotePowerShellLocation + "\WebsiteSetup.ps1"
 	$remoteValues = @{
-		Version = $deploymentVariables.targetVersion
+		"Version" = $deploymentVariables.targetVersion
 	}
 
-
-	Invoke-Command -Session $session -FilePath $remoteScript -ArgumentList (,$remoteValues)
+	Invoke-Command -Session $session -FilePath $remoteScript
 }
