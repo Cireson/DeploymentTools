@@ -67,27 +67,29 @@ function Update-ServiceConfiguration($serviceRoot, $websiteRoot){
 function Get-WebsiteDeploymentInfo($version){
 	$ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "Get-WebsiteDeploymentInfo Version 1.0.1" -ForegroundColor Yellow
+	Write-Host "Get-WebsiteDeploymentInfo Version 1.0.2" -ForegroundColor Yellow
 
     $websiteDeployPath = "c:\websites"
+	Write-Host "Path: '$websiteDeployPath'"
 
     if((Test-Path -Path $websiteDeployPath) -eq $false){
         New-Item -Path $websiteDeployPath -ItemType Directory
     }
 
     $websiteDeploymentPath = $websiteDeployPath + "\deployment"
+	Write-Host "DeploymentPath: '$websiteDeploymentPath'"
     if((Test-Path -Path $websiteDeploymentPath) -eq $false){
         New-Item -Path $websiteDeploymentPath -ItemType Directory
     }
     
     $websiteDeployPath = $websiteDeployPath + "\cmpWebsite"
-
+	Write-Host "Path: '$websiteDeployPath'"
     if((Test-Path -Path $websiteDeployPath) -eq $false){
         New-Item -Path $websiteDeployPath -ItemType Directory
     }
 
     $websiteDeployPath = $websiteDeployPath + "\" + $version
-
+	Write-Host "Path: '$websiteDeployPath'"
     if((Test-Path -Path $websiteDeployPath) -eq $true){
         Remove-Item $websiteDeployPath -Recurse -Force
     }
@@ -117,9 +119,10 @@ function Get-WebsiteDeploymentInfo($version){
 }
 
 Write-Host "************************************************************************"
-Write-Host "WebsiteSetup Version 1.0.1" -ForegroundColor Yellow
+Write-Host "WebsiteSetup Version 1.0.2" -ForegroundColor Yellow
 
 $version = $currentValues.Version
+Write-Host "Version: '$version'"
 $websiteInfo = Get-WebsiteDeploymentInfo -version $version
 Copy-Item -Path $websiteInfo.SourcePath -Destination $websiteInfo.DeployPath -Recurse
 CreateOrUpdateWebsite -newWebsitePath $websiteInfo.DeployPath
