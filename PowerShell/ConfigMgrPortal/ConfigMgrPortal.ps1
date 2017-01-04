@@ -28,7 +28,7 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $dependentPackages){
 	$ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "Start-Deployment Version 1.0.10" -ForegroundColor Yellow
+	Write-Host "Start-Deployment Version 1.0.11" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -79,7 +79,6 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
         $onDeploymentVariables = $Using:deploymentVariables
         $onRemotePowerShellLocation = $Using:remotePowerShellLocation
 		$onDeploymentScripts = $Using:deploymentScripts
-		$remVals = $Using:remoteValues
 
 		foreach($uri in $onDeploymentScripts){
 			$fileName = $uri.Segments[$uri.Segments.Count-1]
