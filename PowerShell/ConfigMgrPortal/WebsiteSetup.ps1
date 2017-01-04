@@ -116,7 +116,7 @@ function Get-WebsiteDeploymentInfo($version){
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.7" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.8" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
