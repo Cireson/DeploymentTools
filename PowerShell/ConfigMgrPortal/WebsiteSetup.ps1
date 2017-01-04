@@ -1,8 +1,3 @@
-Param(
-	[Parameter(Position=0)]
-	$currentValues
-)
-
 function CreateOrUpdateWebsite($newWebsitePath){
     $ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
@@ -119,63 +114,65 @@ function Get-WebsiteDeploymentInfo($version){
     }
 }
 
-Write-Host "************************************************************************"
-Write-Host "WebsiteSetup Version 1.0.7" -ForegroundColor Yellow
+function Setup-Website($currentValues){
+	Write-Host "************************************************************************"
+	Write-Host "WebsiteSetup Version 1.0.7" -ForegroundColor Yellow
 
-Write-Host "Current Values: $currentValues"
+	Write-Host "Current Values: $currentValues"
 
-$version = $currentValues.Version
-Write-Host "Version: '$version'"
-$websiteInfo = Get-WebsiteDeploymentInfo -version $version
-Copy-Item -Path $websiteInfo.SourcePath -Destination $websiteInfo.DeployPath -Recurse
-CreateOrUpdateWebsite -newWebsitePath $websiteInfo.DeployPath
+	$version = $currentValues.Version
+	Write-Host "Version: '$version'"
+	$websiteInfo = Get-WebsiteDeploymentInfo -version $version
+	Copy-Item -Path $websiteInfo.SourcePath -Destination $websiteInfo.DeployPath -Recurse
+	CreateOrUpdateWebsite -newWebsitePath $websiteInfo.DeployPath
 
-$serviceDeployPath = "c:\services"
+	$serviceDeployPath = "c:\services"
 
-if((Test-Path -Path $serviceDeployPath) -eq $false){
-    New-Item -Path $serviceDeployPath -ItemType Directory
-}
+	if((Test-Path -Path $serviceDeployPath) -eq $false){
+		New-Item -Path $serviceDeployPath -ItemType Directory
+	}
 
-$serviceSourcePath = $serviceDeployPath + "\deployment"
-if((Test-Path -Path $serviceSourcePath) -eq $false){
-    New-Item -Path $serviceSourcePath -ItemType Directory
-}
+	$serviceSourcePath = $serviceDeployPath + "\deployment"
+	if((Test-Path -Path $serviceSourcePath) -eq $false){
+		New-Item -Path $serviceSourcePath -ItemType Directory
+	}
 
-$serviceDeployPath = $serviceDeployPath + "\cmpService"
+	$serviceDeployPath = $serviceDeployPath + "\cmpService"
 
-if((Test-Path -Path $serviceDeployPath) -eq $false){
-    New-Item -Path $serviceDeployPath -ItemType Directory
-}
+	if((Test-Path -Path $serviceDeployPath) -eq $false){
+		New-Item -Path $serviceDeployPath -ItemType Directory
+	}
 
-$serviceDeployPath = $serviceDeployPath + "\" + $version
+	$serviceDeployPath = $serviceDeployPath + "\" + $version
 
-if((Test-Path -Path $serviceDeployPath) -eq $true){
-    Remove-Item $serviceDeployPath -Recurse -Force
-}
-New-Item -Path $serviceDeployPath -ItemType Directory
+	if((Test-Path -Path $serviceDeployPath) -eq $true){
+		Remove-Item $serviceDeployPath -Recurse -Force
+	}
+	New-Item -Path $serviceDeployPath -ItemType Directory
 
-$serviceSourcePath = $serviceSourcePath + "\Cireson ConfigMgr Portal Service x64.msi"
+	$serviceSourcePath = $serviceSourcePath + "\Cireson ConfigMgr Portal Service x64.msi"
 
-Copy-Item -Path $serviceSourcePath -Destination $serviceDeployPath
+	Copy-Item -Path $serviceSourcePath -Destination $serviceDeployPath
 
-$serviceMsi = $serviceDeployPath + "\Cireson ConfigMgr Portal Service x64.msi"
+	$serviceMsi = $serviceDeployPath + "\Cireson ConfigMgr Portal Service x64.msi"
 
-# run the msi
-#msiexec.exe /i '$serviceMsi' /qn /l*v c:\Temp\logfile.log ALLUSERS=2    
-$arguments = @(
-    "/i"
-    "`"$serviceMsi`""
-    "/qn"
-)
-$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
-if($process.ExitCode -eq 0){
-    Write-Host "Installed Service"
-}
+	# run the msi
+	#msiexec.exe /i '$serviceMsi' /qn /l*v c:\Temp\logfile.log ALLUSERS=2    
+	$arguments = @(
+		"/i"
+		"`"$serviceMsi`""
+		"/qn"
+	)
+	$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
+	if($process.ExitCode -eq 0){
+		Write-Host "Installed Service"
+	}
     
-$serviceDeployPath = "$Env:ProgramFiles\Cireson\Portal for Configuration Manager\Services"
+	$serviceDeployPath = "$Env:ProgramFiles\Cireson\Portal for Configuration Manager\Services"
 
-# Update ConfigMgr Portal Hosting Service.exe.config, setting the BaseFolder to the new folder for website
-Update-ServiceConfiguration -serviceRoot $serviceDeployPath -websiteRoot $websiteInfo.DeployPath
+	# Update ConfigMgr Portal Hosting Service.exe.config, setting the BaseFolder to the new folder for website
+	Update-ServiceConfiguration -serviceRoot $serviceDeployPath -websiteRoot $websiteInfo.DeployPath
 
-# Start Portal Service
-Start-Service -Name "Cireson ConfigMgr Portal Hosting Service"
+	# Start Portal Service
+	Start-Service -Name "Cireson ConfigMgr Portal Hosting Service"
+	}

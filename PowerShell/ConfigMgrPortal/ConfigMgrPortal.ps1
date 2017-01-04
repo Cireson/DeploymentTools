@@ -74,11 +74,12 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
 	Push-RemoteDeploymentScripts $session $deploymentScripts $remotePowerShellLocation
 
 	$remoteScript = $remotePowerShellLocation + "\WebsiteSetup.ps1"
-	$version = $deploymentVariables.targetVersion
+	$remoteValues = @{
+			"Version" = $deploymentVariables.targetVersion
+		}
 
 	Invoke-Command -Session $session -ScriptBlock {
-		$remVals = $Using:version
+		$remVals = $Using:remoteValues
 		Write-Host "RemoteValues: '$remVals'"
-		& $remoteScript $remVals
 	}
 }
