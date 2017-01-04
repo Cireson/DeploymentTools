@@ -116,11 +116,11 @@ function Get-WebsiteDeploymentInfo($version){
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.8" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.9" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
-	$version = $currentValues.Version
+	$version = $currentValues.targetVersion
 	Write-Host "Version: '$version'"
 	$websiteInfo = Get-WebsiteDeploymentInfo -version $version
 	Copy-Item -Path $websiteInfo.SourcePath -Destination $websiteInfo.DeployPath -Recurse
