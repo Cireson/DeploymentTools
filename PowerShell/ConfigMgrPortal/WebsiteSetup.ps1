@@ -90,7 +90,7 @@ function Update-ServiceConfiguration($serviceRoot, $websiteRoot){
 function Get-WebsiteDeploymentInfo($version){
 	$ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "Get-WebsiteDeploymentInfo Version 1.0.3" -ForegroundColor Yellow
+	Write-Host "Get-WebsiteDeploymentInfo Version 1.0.4" -ForegroundColor Yellow
 
     $websiteDeployPath = "c:\websites"
 	Write-Host "Path: '$websiteDeployPath'"
@@ -114,7 +114,7 @@ function Get-WebsiteDeploymentInfo($version){
 
     $websiteDeployPath = $websiteDeployPath + "\" + $version
 	$num = 1
-	While((Test-Path -Path $websiteDeployPath) -eq $true){\
+	While((Test-Path -Path $websiteDeployPath) -eq $true){
 		$num = $num + 1
 		$redeployVersion = $version + "-Redeploy" + $num
 		$websiteDeployPath = $websiteDeployPath + "\" + $redeployVersion
