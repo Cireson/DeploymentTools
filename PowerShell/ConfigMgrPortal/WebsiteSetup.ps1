@@ -1,7 +1,7 @@
 function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings, $version){
     $ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "CreateOrUpdateWebsite Version 1.0.7" -ForegroundColor Yellow
+	Write-Host "CreateOrUpdateWebsite Version 1.0.8" -ForegroundColor Yellow
 
 	[Void][Reflection.Assembly]::LoadWithPartialName("Microsoft.Web.Administration")
 	Import-Module WebAdministration
@@ -26,9 +26,6 @@ function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings,
         $rootApp = $site.Applications | where-object { $_.Path -eq "/" }
         $rootVdir = $rootApp.VirtualDirectories | where { $_.Path -eq "/" }
         $currentWebsitePath = $rootVdir.PhysicalPath;
-		if((ls $versionsPath).Length -gt 1){
-			$currentWebsitePath = (ls $versionsPath | Sort-Object LastWriteTime -Descending | where-object {$_.Name -ne $version} | Select-Object -First 1).FullName
-		}
 
         Write-Host "Copy configuration.xml from old site to new site."
         $configFileSource = $currentWebsitePath + "\configuration.xml"
