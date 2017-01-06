@@ -1,7 +1,7 @@
-function CreateOrUpdateWebsite($newWebsitePath, $versionsPath){
+function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings){
     $ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "CreateOrUpdateWebsite Version 1.0.2" -ForegroundColor Yellow
+	Write-Host "CreateOrUpdateWebsite Version 1.0.3" -ForegroundColor Yellow
 
 	[Void][Reflection.Assembly]::LoadWithPartialName("Microsoft.Web.Administration")
 
@@ -15,7 +15,7 @@ function CreateOrUpdateWebsite($newWebsitePath, $versionsPath){
 
     if($site -eq $null){
         # If no current version setup site for first time.
-        New-WebAppPool -Name $websiteName
+        New-WebAppPool -Name $websiteName 
         Write-Host "Setup application pool."
         New-Website -Name $websiteName -PhysicalPath $newWebsitePath -ApplicationPool $websiteName -Port 80 -HostHeader "integration-configmgrportal.cireson.com"
         Set-WebConfiguration system.webServer/security/authentication/windowsAuthentication -PSPath IIS:\ -Location $websiteName -Value @{enabled="True"}
@@ -48,18 +48,19 @@ function CreateOrUpdateWebsite($newWebsitePath, $versionsPath){
         Write-Host "Updated existing site's physical path"
     }
 
-	$currentAcl = Get-Acl -Path $versionsPath
-	$user = "IIS APPPOOL\ConfigMgrPortal"
+	Set-ItemProperty IIS:\AppPools\$websiteName -Name processModel -Value @{userName=$appPoolSettings.userName;password=$appPoolSettings.password;identitytype=3}
 
-	$appPoolIdentity = $currentAcl.Access | Where-Object { $_.IdentityReference -eq $user}
+	$currentAcl = Get-Acl -Path $versionsPath
+
+	$appPoolIdentity = $currentAcl.Access | Where-Object { $_.IdentityReference -eq $appPoolSettings.userName}
 
 	if($appPoolIdentity -ne $null){
-		Write-Host "$user has full control of $versionsPath"
+		Write-Host "$appPoolSettings.userName has full control of $versionsPath"
 	}else{
-		$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($user, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+		$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($appPoolSettings.userName, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
 		$currentAcl.SetAccessRule($accessRule)
 		Set-Acl $versionsPath $currentAcl
-		Write-Host "Granted $user full control of $versionsPath"
+		Write-Host "Granted $appPoolSettings.userName full control of $versionsPath"
 	}
 }
 
@@ -132,15 +133,19 @@ function Get-WebsiteDeploymentInfo($version){
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.9" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.10" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
 	$version = $currentValues.targetVersion
+	$appPoolSettings = @{
+		userName = $currentValues.appPoolUserName
+		password = $currentValues.appPoolPassword
+	}
 	Write-Host "Version: '$version'"
 	$websiteInfo = Get-WebsiteDeploymentInfo -version $version
 	Copy-Item -Path $websiteInfo.SourcePath -Destination $websiteInfo.DeployPath -Recurse
-	CreateOrUpdateWebsite -newWebsitePath $websiteInfo.DeployPath -versionsPath $websiteInfo.WebsiteVersionsPath
+	CreateOrUpdateWebsite -newWebsitePath $websiteInfo.DeployPath -versionsPath $websiteInfo.WebsiteVersionsPath -appPoolSettings $appPoolSettings
 
 	$serviceDeployPath = "c:\services"
 
