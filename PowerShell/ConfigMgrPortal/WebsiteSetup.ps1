@@ -90,7 +90,7 @@ function Update-ServiceConfiguration($serviceRoot, $websiteRoot){
 function Get-WebsiteDeploymentInfo($version){
 	$ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "Get-WebsiteDeploymentInfo Version 1.0.2" -ForegroundColor Yellow
+	Write-Host "Get-WebsiteDeploymentInfo Version 1.0.3" -ForegroundColor Yellow
 
     $websiteDeployPath = "c:\websites"
 	Write-Host "Path: '$websiteDeployPath'"
@@ -113,10 +113,13 @@ function Get-WebsiteDeploymentInfo($version){
     }
 
     $websiteDeployPath = $websiteDeployPath + "\" + $version
-	Write-Host "Path: '$websiteDeployPath'"
-    if((Test-Path -Path $websiteDeployPath) -eq $true){
-        Remove-Item $websiteDeployPath -Recurse -Force
-    }
+	$num = 1
+	While((Test-Path -Path $websiteDeployPath) -eq $true){\
+		$num = $num + 1
+		$redeployVersion = $version + "-Redeploy" + $num
+		$websiteDeployPath = $websiteDeployPath + "\" + $redeployVersion
+	}
+	$version = $redeployVersion
     New-Item -Path $websiteDeployPath -ItemType Directory
 
     $websiteSourcePath = ""
@@ -140,12 +143,13 @@ function Get-WebsiteDeploymentInfo($version){
 		WebsiteVersionsPath = $websiteVersionsRoot
         SourcePath = $websiteSourcePath
         DeployPath = $websiteDeployPath
+		Version = $version
     }
 }
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.10" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.11" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
@@ -156,6 +160,7 @@ function Setup-Website($currentValues){
 	}
 	Write-Host "Version: '$version'"
 	$websiteInfo = Get-WebsiteDeploymentInfo -version $version
+	$version = $websiteInfo.Version
 	Copy-Item -Path $websiteInfo.SourcePath -Destination $websiteInfo.DeployPath -Recurse
 	CreateOrUpdateWebsite -newWebsitePath $websiteInfo.DeployPath -versionsPath $websiteInfo.WebsiteVersionsPath -appPoolSettings $appPoolSettings -version $version
 
