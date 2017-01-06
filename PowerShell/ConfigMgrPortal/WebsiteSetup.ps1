@@ -1,9 +1,10 @@
 function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings){
     $ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "CreateOrUpdateWebsite Version 1.0.3" -ForegroundColor Yellow
+	Write-Host "CreateOrUpdateWebsite Version 1.0.4" -ForegroundColor Yellow
 
 	[Void][Reflection.Assembly]::LoadWithPartialName("Microsoft.Web.Administration")
+	Import-Module WebAdministration
 
     $currentWebsitePath = ""
     $websiteName = "ConfigMgrPortal"
