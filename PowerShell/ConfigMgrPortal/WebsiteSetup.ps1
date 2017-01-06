@@ -1,7 +1,7 @@
 function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings){
     $ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "CreateOrUpdateWebsite Version 1.0.4" -ForegroundColor Yellow
+	Write-Host "CreateOrUpdateWebsite Version 1.0.5" -ForegroundColor Yellow
 
 	[Void][Reflection.Assembly]::LoadWithPartialName("Microsoft.Web.Administration")
 	Import-Module WebAdministration
@@ -31,6 +31,8 @@ function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings)
         # Otherwise copy Configuration.xml and Web.Config from old over new.
         $configFileSource = $currentWebsitePath + "\configuration.xml"
         $configFileTarget = $newWebsitePath + "\configuration.xml"
+		Write-Host "Old configuration file path: $configFileSource"
+		Write-Host "New configuration file path: $configFileTarget"
         if((Test-Path $configFileSource) -eq $true -and $configFileSource -ne $configFileTarget){
             Copy-Item -path $configFileSource -Destination $configFileTarget -Force
             Write-Host "Copied existing Configuration.xml to new site."
@@ -38,6 +40,8 @@ function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings)
 
         $webConfigFileSource = $currentWebsitePath + "\web.config"
         $webConfigFileTarget = $newWebsitePath + "\web.config"
+		Write-Host "Old web.config file path: $webConfigFileSource"
+		Write-Host "New web.config file path: $webConfigFileTarget"
         if((Test-Path $webConfigFileSource) -eq $true -and $webConfigFileSource -ne $webConfigFileTarget){
             Copy-Item -path $webConfigFileSource -Destination $webConfigFileTarget -Force
             Write-Host "Copied existing Web.config to new site."
@@ -49,16 +53,17 @@ function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings)
         Write-Host "Updated existing site's physical path"
     }
 
-	Set-ItemProperty IIS:\AppPools\$websiteName -Name processModel -Value @{userName=$appPoolSettings.userName;password=$appPoolSettings.password;identitytype=3}
+	$username = $appPoolSettings.userName;
+	Set-ItemProperty IIS:\AppPools\$websiteName -Name processModel -Value @{userName=$username;password=$appPoolSettings.password;identitytype=3}
 
 	$currentAcl = Get-Acl -Path $versionsPath
 
-	$appPoolIdentity = $currentAcl.Access | Where-Object { $_.IdentityReference -eq $appPoolSettings.userName}
+	$appPoolIdentity = $currentAcl.Access | Where-Object { $_.IdentityReference -eq $username}
 
 	if($appPoolIdentity -ne $null){
-		Write-Host "$appPoolSettings.userName has full control of $versionsPath"
+		Write-Host "$username has full control of $versionsPath"
 	}else{
-		$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($appPoolSettings.userName, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+		$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($username, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
 		$currentAcl.SetAccessRule($accessRule)
 		Set-Acl $versionsPath $currentAcl
 		Write-Host "Granted $appPoolSettings.userName full control of $versionsPath"
