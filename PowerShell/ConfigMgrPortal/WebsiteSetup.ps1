@@ -1,7 +1,7 @@
-function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings){
+function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings, $version){
     $ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "CreateOrUpdateWebsite Version 1.0.5" -ForegroundColor Yellow
+	Write-Host "CreateOrUpdateWebsite Version 1.0.7" -ForegroundColor Yellow
 
 	[Void][Reflection.Assembly]::LoadWithPartialName("Microsoft.Web.Administration")
 	Import-Module WebAdministration
@@ -24,11 +24,13 @@ function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings)
         Write-Host "Setup new web site."
     }else{
         $rootApp = $site.Applications | where-object { $_.Path -eq "/" }
-        $rootApp.VirtualDirectories | where { $_.Path -eq "/" }
         $rootVdir = $rootApp.VirtualDirectories | where { $_.Path -eq "/" }
         $currentWebsitePath = $rootVdir.PhysicalPath;
+		if((ls $versionsPath).Length -gt 1){
+			$currentWebsitePath = (ls $versionsPath | Sort-Object LastWriteTime -Descending | where-object {$_.Name -ne $version} | Select-Object -First 1).FullName
+		}
 
-        # Otherwise copy Configuration.xml and Web.Config from old over new.
+        Write-Host "Copy configuration.xml from old site to new site."
         $configFileSource = $currentWebsitePath + "\configuration.xml"
         $configFileTarget = $newWebsitePath + "\configuration.xml"
 		Write-Host "Old configuration file path: $configFileSource"
@@ -36,7 +38,9 @@ function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings)
         if((Test-Path $configFileSource) -eq $true -and $configFileSource -ne $configFileTarget){
             Copy-Item -path $configFileSource -Destination $configFileTarget -Force
             Write-Host "Copied existing Configuration.xml to new site."
-        }
+        }else{
+			Write-Host "No existing Configuration.xml to copy."
+		}
 
         $webConfigFileSource = $currentWebsitePath + "\web.config"
         $webConfigFileTarget = $newWebsitePath + "\web.config"
@@ -45,7 +49,9 @@ function CreateOrUpdateWebsite($newWebsitePath, $versionsPath, $appPoolSettings)
         if((Test-Path $webConfigFileSource) -eq $true -and $webConfigFileSource -ne $webConfigFileTarget){
             Copy-Item -path $webConfigFileSource -Destination $webConfigFileTarget -Force
             Write-Host "Copied existing Web.config to new site."
-        }
+        }else{
+			Write-Host "No existing web.config to copy."
+		}
 
         # Point website at new folder
         $rootVdir.PhysicalPath = $newWebsitePath
@@ -151,7 +157,7 @@ function Setup-Website($currentValues){
 	Write-Host "Version: '$version'"
 	$websiteInfo = Get-WebsiteDeploymentInfo -version $version
 	Copy-Item -Path $websiteInfo.SourcePath -Destination $websiteInfo.DeployPath -Recurse
-	CreateOrUpdateWebsite -newWebsitePath $websiteInfo.DeployPath -versionsPath $websiteInfo.WebsiteVersionsPath -appPoolSettings $appPoolSettings
+	CreateOrUpdateWebsite -newWebsitePath $websiteInfo.DeployPath -versionsPath $websiteInfo.WebsiteVersionsPath -appPoolSettings $appPoolSettings -version $version
 
 	$serviceDeployPath = "c:\services"
 
