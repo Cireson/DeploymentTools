@@ -1,7 +1,7 @@
-function CreateOrUpdateWebsite($newWebsitePath){
+function CreateOrUpdateWebsite($newWebsitePath, $versionsPath){
     $ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "CreateOrUpdateWebsite Version 1.0.1" -ForegroundColor Yellow
+	Write-Host "CreateOrUpdateWebsite Version 1.0.2" -ForegroundColor Yellow
 
 	[Void][Reflection.Assembly]::LoadWithPartialName("Microsoft.Web.Administration")
 
@@ -47,6 +47,20 @@ function CreateOrUpdateWebsite($newWebsitePath){
         $serverManager.CommitChanges()
         Write-Host "Updated existing site's physical path"
     }
+
+	$currentAcl = Get-Acl -Path $versionsPath
+	$user = "IIS APPPOOL\ConfigMgrPortal"
+
+	$appPoolIdentity = $currentAcl.Access | Where-Object { $_.IdentityReference -eq $user}
+
+	if($appPoolIdentity -ne $null){
+		Write-Host "$user has full control of $versionsPath"
+	}else{
+		$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($user, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+		$currentAcl.SetAccessRule($accessRule)
+		Set-Acl $versionsPath $currentAcl
+		Write-Host "Granted $user full control of $versionsPath"
+	}
 }
 
 function Update-ServiceConfiguration($serviceRoot, $websiteRoot){
@@ -79,6 +93,7 @@ function Get-WebsiteDeploymentInfo($version){
     }
     
     $websiteDeployPath = $websiteDeployPath + "\cmpWebsite"
+	$websiteVersionsRoot = $websiteDeployPath;
 	Write-Host "Path: '$websiteDeployPath'"
     if((Test-Path -Path $websiteDeployPath) -eq $false){
         New-Item -Path $websiteDeployPath -ItemType Directory
@@ -109,6 +124,7 @@ function Get-WebsiteDeploymentInfo($version){
     }
 
     return @{
+		WebsiteVersionsPath = $websiteVersionsRoot
         SourcePath = $websiteSourcePath
         DeployPath = $websiteDeployPath
     }
@@ -124,7 +140,7 @@ function Setup-Website($currentValues){
 	Write-Host "Version: '$version'"
 	$websiteInfo = Get-WebsiteDeploymentInfo -version $version
 	Copy-Item -Path $websiteInfo.SourcePath -Destination $websiteInfo.DeployPath -Recurse
-	CreateOrUpdateWebsite -newWebsitePath $websiteInfo.DeployPath
+	CreateOrUpdateWebsite -newWebsitePath $websiteInfo.DeployPath -versionsPath $websiteInfo.WebsiteVersionsPath
 
 	$serviceDeployPath = "c:\services"
 
