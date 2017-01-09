@@ -204,12 +204,12 @@ function Create-TargetDirectory($rootDirectory, $targetVersion){
 }
 
 function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
-    Write-Host "************************************************************************"
-	Write-Host "Download-Platform Version 1.0.0"
+	Write-Host "************************************************************************"
+	Write-Host "Download-Platform Version 1.0.1"
 	$platformBaseDirectory = "$baseDirectory\platform"
-      if((Test-Path $platformBaseDirectory) -ne $true){
-          New-Item $platformBaseDirectory -type directory    
-      }
+    if((Test-Path $platformBaseDirectory) -ne $true){
+        New-Item $platformBaseDirectory -type directory    
+    }
   
     $platform = "$platformBaseDirectory\$platformVersion"
 
@@ -250,10 +250,11 @@ function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
             "Platform Host $platformVersion Already Exists"
       }
 
-      "Copying Platform Version $platformVersion to $targetDirectory"
-      Copy-Item -Path "$platform\*.*" -Destination $targetDirectory
-      "Contents of $targetDirectory"
-      get-childitem "$targetDirectory"
+	"Emptying $targetDirectory"
+	Remove-Item "$targetDirectory\*" -Recurse -Force
+
+    "Copying Platform Version $platformVersion to $targetDirectory"
+    Copy-Item -Path "$platform\*.*" -Destination $targetDirectory
 }
 
 function Update-PlatformConfig($targetDirectory, $connectionString){
