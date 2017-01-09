@@ -147,7 +147,7 @@ function Get-WebsiteDeploymentInfo($version){
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.11" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.12" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
@@ -198,6 +198,8 @@ function Setup-Website($currentValues){
 		"/i"
 		"`"$serviceMsi`""
 		"/qn"
+		"/l*v c:\Temp\logfile.log"
+		"ALLUSERS=2"
 	)
 	$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
 	if($process.ExitCode -eq 0){
