@@ -342,10 +342,11 @@ function Restart-RemotePlatform($session, $serviceName){
 
 function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session, $agentReleaseDirectory, $buildDefinitionName, $deploymentScripts, $remotePowerShellLocation){
 	Write-Host "************************************************************************"
-	Write-Host "Copy-NuGets Version 1.0.5"
+	Write-Host "Copy-NuGets Version 1.0.6"
 
 	#Import-Module -Name AzureRM​.Storage
-	Install-Module AzureRM
+	#Install-Module AzureRM
+	Get-Module -ListAvailable
 	Install-AzureRM
 	Import-AzureRM
 
