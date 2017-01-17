@@ -342,9 +342,9 @@ function Restart-RemotePlatform($session, $serviceName){
 
 function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tempContainerName, $session, $agentReleaseDirectory, $buildDefinitionName, $deploymentScripts, $remotePowerShellLocation){
 	Write-Host "************************************************************************"
-	Write-Host "Copy-NuGets Version 1.0.2"
+	Write-Host "Copy-NuGets Version 1.0.3"
 
-	Import-Module -Name Azure
+	Import-Module -Name AzureRM​.Storage
 
 	$storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $resourceGroupName| Where-Object{ $_.StorageAccountName -eq $storageAccountName}
 	"----Storage Account----"
