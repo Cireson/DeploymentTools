@@ -205,7 +205,7 @@ function Create-TargetDirectory($rootDirectory, $targetVersion){
 
 function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
 	Write-Host "************************************************************************"
-	Write-Host "Download-Platform Version 1.0.1"
+	Write-Host "Download-Platform Version 1.0.2"
 	$platformBaseDirectory = "$baseDirectory\platform"
     if((Test-Path $platformBaseDirectory) -ne $true){
         New-Item $platformBaseDirectory -type directory    
@@ -217,38 +217,43 @@ function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
 
         New-Item $platform -type directory
   
-        $url = "https://www.nuget.org/api/v2/package/Cireson.Platform.Core.Host/$platformVersion"
-        Write-Output "Url: $url"
+		try{
+			$url = "https://www.nuget.org/api/v2/package/Cireson.Platform.Core.Host/$platformVersion"
+			Write-Output "Url: $url"
   
-        $file = "$platform\platform.zip"
-        Write-Output "File: $file"
+			$file = "$platform\platform.zip"
+			Write-Output "File: $file"
 
-         $webclient = New-Object System.Net.WebClient
-         $webclient.DownloadFile($url,$file)
+			 $webclient = New-Object System.Net.WebClient
+			 $webclient.DownloadFile($url,$file)
 
-        "Unzipping $file"
-        Unzip-File $file "$platform\PackageContents"
+			"Unzipping $file"
+			Unzip-File $file "$platform\PackageContents"
 
-        "Removing $file"
-        Remove-Item $file -recurse -force
+			"Removing $file"
+			Remove-Item $file -recurse -force
 
-        "Copying Host Zip to $platform"
-        Copy-Item -Path "$platform\PackageContents\content\PlatformRuntime\Cireson.Platform.Host.zip" -Destination "$platform\Cireson.Platform.Host.zip"
+			"Copying Host Zip to $platform"
+			Copy-Item -Path "$platform\PackageContents\content\PlatformRuntime\Cireson.Platform.Host.zip" -Destination "$platform\Cireson.Platform.Host.zip"
 
-        "Remove Package Contents"
-        Remove-Item "$platform\PackageContents" -Recurse -Force
+			"Remove Package Contents"
+			Remove-Item "$platform\PackageContents" -Recurse -Force
 
-        "Unzipping Platform Host"
-        Unzip-File "$platform\Cireson.Platform.Host.zip" $platform
+			"Unzipping Platform Host"
+			Unzip-File "$platform\Cireson.Platform.Host.zip" $platform
 
-        "Remove Platform Host Zip"
-        Remove-Item "$platform\Cireson.Platform.Host.zip"
+			"Remove Platform Host Zip"
+			Remove-Item "$platform\Cireson.Platform.Host.zip"
 
-        "Platform Host $platformVersion Downloaded"
-        "Find at: $platform"
-      }else{
-            "Platform Host $platformVersion Already Exists"
-      }
+			"Platform Host $platformVersion Downloaded"
+			"Find at: $platform"
+		}catch{
+			Remove-Item $platform -Recurse -Force
+			throw
+		}
+	}else{
+		"Platform Host $platformVersion Already Exists"
+	}
 
 	"Emptying $targetDirectory"
 	Remove-Item "$targetDirectory\*" -Recurse -Force
