@@ -138,8 +138,8 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
 			Download-Extension -name $package.Name -version $package.Version -feedName $package.FeedName -account $onDeploymentVariables.vstsAccountName -vstsAuth $vstsAuth    
 		}
 
+		Start-Platform  -deploymentVariables $onDeploymentVariables -targetDirectory $targetDirectory
+
 		Write-Host "End running on remote machine, $targetMachineHostName."
     }
-
-	Start-RemotePlatform -session $session -deploymentVariables $deploymentVariables -targetDirectory $targetDirectory
 }
