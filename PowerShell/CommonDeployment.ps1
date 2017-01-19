@@ -213,7 +213,8 @@ function Create-TargetDirectory($rootDirectory, $targetVersion){
 
 function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
 	Write-Host "************************************************************************"
-	Write-Host "Download-Platform Version 1.0.2"
+	Write-Host "Download-Platform Version 1.0.3"
+	Write-Host "TargetDirectory: '$targetDirectory'"
 	$platformBaseDirectory = "$baseDirectory\platform"
     if((Test-Path $platformBaseDirectory) -ne $true){
         New-Item $platformBaseDirectory -type directory    
