@@ -191,24 +191,24 @@ function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlSer
 
 function Create-TargetDirectory($rootDirectory, $targetVersion){
     Write-Host "************************************************************************"
-	Write-Host "Create-TargetDirectory Version 1.0.5"
+	Write-Host "Create-TargetDirectory Version 1.0.6"
 	$redeployVersion = $targetVersion
-	$targetDirectory = "$rootDirectory\$targetVersion"
+	$directory = "$rootDirectory\$targetVersion"
 	$num = 0
-	While((Test-Path -Path $targetDirectory) -eq $true){
+	While((Test-Path -Path $directory) -eq $true){
 		$num = $num + 1
 		$redeployVersion = $targetVersion + "-Redeploy" + $num
-		$targetDirectory = $rootDirectory + "\" + $redeployVersion
+		$directory = $rootDirectory + "\" + $redeployVersion
 	}
 
-    New-Item -Path $targetDirectory -ItemType Directory
-	While((Test-Path -Path $targetDirectory) -ne $true){
+    New-Item -Path $directory -ItemType Directory
+	While((Test-Path -Path $directory) -ne $true){
 		Write-Host "Waiting for target directory to exist." 
 		Start-Sleep -s 5
 	}
 
-	Write-Host "Created $targetDirectory"
-	$targetDirectory
+	Write-Host "Created $directory"
+	$directory
 	return
 }
 
