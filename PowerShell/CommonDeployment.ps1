@@ -191,15 +191,18 @@ function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlSer
 
 function Create-TargetDirectory($rootDirectory, $targetVersion){
     Write-Host "************************************************************************"
-	Write-Host "Create-TargetDirectory Version 1.0.0"
+	Write-Host "Create-TargetDirectory Version 1.0.1"
+	$redeployVersion = $targetVersion
 	$targetDirectory = "$rootDirectory\$targetVersion"
-    if((Test-Path $targetDirectory) -ne $true){
-        $newItem = New-Item $targetDirectory -type directory
-        Write-Host "Created $targetDirectory"    
-    }else{
-        Write-Host "$targetDirectory Already Exists"
-    }
+	$num = 0
+	While((Test-Path -Path $targetDirectory) -eq $true){
+		$num = $num + 1
+		$redeployVersion = $targetVersion + "-Redeploy" + $num
+		$targetDirectory = $rootDirectory + "\" + $redeployVersion
+	}
 
+    New-Item -Path $targetDirectory -ItemType Directory
+	Write-Host "Created $targetDirectory" 
     return $targetDirectory
 }
 
@@ -272,17 +275,16 @@ function Update-PlatformConfig($targetDirectory, $connectionString){
     $configFile.Save($configPath) 
 }
 
-function Start-RemotePlatform($session, $deploymentVariables){
+function Start-RemotePlatform($session, $deploymentVariables, $targetDirectory){
 	Write-Host "************************************************************************"
-	Write-Host "Start-RemotePlatform Version 1.0.4"
+	Write-Host "Start-RemotePlatform Version 1.0.5"
 	Write-Host "Begin Start-RemotePlatform" -ForegroundColor Green
 
 	Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
         $onDeploymentVariables = $Using:deploymentVariables
+		$onTargetDirectory = $Using:targetDirectory
 
-        $productDirectory = $onDeploymentVariables.productRoot
-		$deployedVersion = $onDeploymentVariables.targetVersion
 		$serviceName = $onDeploymentVariables.serviceName
 		$serviceUserName = $onDeploymentVariables.serviceUserName
 		$serviceUserPassword = $onDeploymentVariables.serviceUserPassword
@@ -293,7 +295,7 @@ function Start-RemotePlatform($session, $deploymentVariables){
  			$masterExtension = $onDeploymentVariables.masterExtension
 		}
 
-		$platform = "$productDirectory\$deployedVersion\Cireson.Platform.Host.exe"
+		$platform = "$onTargetDirectory\Cireson.Platform.Host.exe"
 
 		$argumentList = "-install", "-sn", $serviceName, "-usr", ".\$serviceUserName", "-pwd", $serviceUserPassword, "-worker"
 
