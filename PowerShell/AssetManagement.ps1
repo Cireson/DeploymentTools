@@ -28,7 +28,7 @@ function Get-DeploymentScripts($destinationFolder, $uris){
 function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $dependentPackages){
 	$ErrorActionPreference = "Stop"
 	Write-Host "************************************************************************"
-	Write-Host "Start-Deployment Version 1.0.8" -ForegroundColor Yellow
+	Write-Host "Start-Deployment Version 1.0.9" -ForegroundColor Yellow
 
 	$deploymentVariables = @{
 		targetMachineHostName = $Env:targetMachineHostName
@@ -119,7 +119,7 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
         Create-DestinationDirectories -root $productDirectory -targetVersion $onDeploymentVariables.targetVersion
 
         $connectionString = Create-PlatformConnectionString -sqlServer $onDeploymentVariables.azureSqlServerName -sqlDatabase $onDeploymentVariables.azureSqlDatabase -sqlUserName $onDeploymentVariables.azureSqlUserName -sqlPassword $onDeploymentVariables.azureSqlUserPassword
-        $targetDirectory = Create-TargetDirectory $productDirectory $onDeploymentVariables.targetVersion
+        Create-TargetDirectory $productDirectory $onDeploymentVariables.targetVersion
 		Write-Host "TargetDirectory: '$targetDirectory'"
 
         Remove-RunningService -serviceName "Platform_$serviceName"
