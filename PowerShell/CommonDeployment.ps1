@@ -191,7 +191,7 @@ function Create-ContainedDatabaseUser([string]$connectionString, [string]$sqlSer
 
 function Create-TargetDirectory($rootDirectory, $targetVersion){
     Write-Host "************************************************************************"
-	Write-Host "Create-TargetDirectory Version 1.0.6"
+	Write-Host "Create-TargetDirectory Version 1.0.7"
 	$redeployVersion = $targetVersion
 	$directory = "$rootDirectory\$targetVersion"
 	$num = 0
@@ -208,7 +208,6 @@ function Create-TargetDirectory($rootDirectory, $targetVersion){
 	}
 
 	Write-Host "Created $directory"
-	$directory
 	return
 }
 
