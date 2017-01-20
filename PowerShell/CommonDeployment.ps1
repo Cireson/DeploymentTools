@@ -472,7 +472,7 @@ function Create-DestinationDirectories([string]$root, [string]$targetVersion){
 
 function Push-RemoteDeploymentScripts($session, $uris, $remotePowerShellLocation){
 	Write-Host "************************************************************************"
-	Write-Host "Push-RemoteDeploymentScripts Version 1.0.0"
+	Write-Host "Push-RemoteDeploymentScripts Version 1.0.1"
 	Invoke-Command -Session $session -ScriptBlock{ 
         $ErrorActionPreference = "Stop"
 		$onUris = $Using:uris
@@ -484,8 +484,22 @@ function Push-RemoteDeploymentScripts($session, $uris, $remotePowerShellLocation
 
             Write-Host "Downloading $uri to $destinationFile" -ForegroundColor Green
 
-            $webclient = New-Object System.Net.WebClient
-            $webclient.DownloadFile($uri,$destinationFile)
+			$fileDownloaded = $false
+			$try = 0
+
+			while($fileDownloaded -eq $false){
+				try{
+					$try = $try + 1
+					$webclient = New-Object System.Net.WebClient
+					$webclient.DownloadFile($uri,$destinationFile)
+					$fileDownloaded = $true
+				}catch{
+                    Start-Sleep -Seconds 3
+					if($try -gt 3){
+						throw
+					}
+				}
+			}
         }
 
         foreach($uri in $onUris){
