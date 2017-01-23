@@ -227,14 +227,13 @@ function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
         New-Item $platform -type directory
   
 		try{
-			$url = "https://www.nuget.org/api/v2/package/Cireson.Platform.Core.Host/$platformVersion"
+			$url = [System.Uri]"https://www.nuget.org/api/v2/package/Cireson.Platform.Core.Host/$platformVersion"
 			Write-Output "Url: $url"
   
 			$file = "$platform\platform.zip"
 			Write-Output "File: $file"
 
-			 $webclient = New-Object System.Net.WebClient
-			 $webclient.DownloadFile($url,$file)
+			DownloadFile-WithRetries $url $file
 
 			"Unzipping $file"
 			Unzip-File $file "$platform\PackageContents"
@@ -506,4 +505,25 @@ function Push-RemoteDeploymentScripts($session, $uris, $remotePowerShellLocation
 			DownloadFile -uri $uri -destinationDirectory $onRemotePowerShellLocation
 		}
     }
+}
+
+function DownloadFile-WithRetries([System.Uri]$uri, $destinationFile){
+    Write-Host "Downloading $uri to $destinationFile" -ForegroundColor Green
+
+	$fileDownloaded = $false
+	$try = 0
+
+	while($fileDownloaded -eq $false){
+		try{
+			$try = $try + 1
+			$webclient = New-Object System.Net.WebClient
+			$webclient.DownloadFile($uri,$destinationFile)
+			$fileDownloaded = $true
+		}catch{
+            Start-Sleep -Seconds 3
+			if($try -gt 3){
+				throw
+			}
+		}
+	}
 }
