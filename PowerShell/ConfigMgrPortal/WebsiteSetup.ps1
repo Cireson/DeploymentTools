@@ -147,7 +147,7 @@ function Get-WebsiteDeploymentInfo($version){
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.15" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.16" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
@@ -204,9 +204,10 @@ function Setup-Website($currentValues){
         Write-Host "Service Not Found - Installing"
 		$arguments = $arguments + "/i"
 	}
-	$arguments = $arguments + "/qn"
+	
 	$arguments = $arguments + "`"$serviceMsi`""
-	$arguments = $arguments + "/l*v C:\Windows\Temp\portalinstallogfile.log"
+    $arguments = $arguments + "/qn"	
+    $arguments = $arguments + "/l*v C:\Windows\Temp\portalinstallogfile.log"
 	$arguments = $arguments + "ALLUSERS=2"
 	
 	$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
