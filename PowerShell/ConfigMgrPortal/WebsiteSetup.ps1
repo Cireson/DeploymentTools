@@ -195,7 +195,7 @@ function Setup-Website($currentValues){
 	# run the msi
 	#msiexec.exe /i '$serviceMsi' /qn /l*v c:\Temp\logfile.log ALLUSERS=2    
 	$arguments = @(
-		"/i"
+		"/fa"
 		"`"$serviceMsi`""
 		"/qn"
 		"/l*v C:\Windows\Temp\portalinstallogfile.log"
