@@ -147,7 +147,7 @@ function Get-WebsiteDeploymentInfo($version){
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.14" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.15" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
@@ -194,13 +194,21 @@ function Setup-Website($currentValues){
 
 	# run the msi
 	#msiexec.exe /i '$serviceMsi' /qn /l*v c:\Temp\logfile.log ALLUSERS=2    
-	$arguments = @(
-		"/fa"
-		"`"$serviceMsi`""
-		"/qn"
-		"/l*v C:\Windows\Temp\portalinstallogfile.log"
-		"ALLUSERS=2"
-	)
+
+	$arguments = @()
+	try{
+		Get-Service "Cireson ConfigMgr Portal Hosting Service" -ErrorAction Stop
+        Write-Host "Service Found - Repairing to Upgrade"
+		$arguments = $arguments + "/fa"
+	}catch{
+        Write-Host "Service Not Found - Installing"
+		$arguments = $arguments + "/i"
+	}
+	$arguments = $arguments + "/qn"
+	$arguments = $arguments + "`"$serviceMsi`""
+	$arguments = $arguments + "/l*v C:\Windows\Temp\portalinstallogfile.log"
+	$arguments = $arguments + "ALLUSERS=2"
+	
 	$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
 	if($process.ExitCode -eq 0){
 		Write-Host "Installed Service"
@@ -213,4 +221,4 @@ function Setup-Website($currentValues){
 
 	# Start Portal Service
 	Start-Service -Name "Cireson ConfigMgr Portal Hosting Service"
-	}
+}
