@@ -147,7 +147,7 @@ function Get-WebsiteDeploymentInfo($version){
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.16" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.17" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
@@ -213,6 +213,12 @@ function Setup-Website($currentValues){
 	$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
 	if($process.ExitCode -eq 0){
 		Write-Host "Installed Service"
+	}else{
+		Write-Host "Process Failed to Install Service"
+		$process
+		Write-Host "Arguments Were"
+		$arguments
+		throw "Failure running MSIEXEC"
 	}
     
 	$serviceDeployPath = "$Env:ProgramFiles\Cireson\Portal for Configuration Manager\Services"
