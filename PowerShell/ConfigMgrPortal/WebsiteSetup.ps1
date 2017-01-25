@@ -147,7 +147,7 @@ function Get-WebsiteDeploymentInfo($version){
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.19" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.20" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
@@ -195,24 +195,22 @@ function Setup-Website($currentValues){
 	# run the msi
 	#msiexec.exe /i '$serviceMsi' /qn /l*v c:\Temp\logfile.log ALLUSERS=2    
 
-	$arguments = @()
+	$arguments = @(
+		"/i"
+		"`"$serviceMsi`""
+		"/qn"
+		"/l*v C:\Windows\Temp\portalinstallogfile.log"
+		"ALLUSERS=2"
+	)
+
 	try{
 		$service = Get-Service "Cireson ConfigMgr Portal Hosting Service" -ErrorAction Stop
 
 		Write-Host "Stopping Found Service"
 		Stop-Service $service -Force
-
-		Write-Host "Using Repair to Upgrade Using MSI"
-		$arguments = $arguments + "/i"
 	}catch{
-        Write-Host "Service Not Found - Installing"
-		$arguments = $arguments + "/i"
+		Write-Host "Service Not Found"
 	}
-	
-	$arguments = $arguments + "`"$serviceMsi`""
-    $arguments = $arguments + "/qn"	
-    $arguments = $arguments + "/l*v C:\Windows\Temp\portalinstallogfile.log"
-	$arguments = $arguments + "ALLUSERS=2"
 	
 	$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
 	if($process.ExitCode -eq 0){
@@ -224,7 +222,26 @@ function Setup-Website($currentValues){
 		$arguments
 		throw "Failure running MSIEXEC"
 	}
-    
+
+	$arguments = @(
+		"/fa"
+		"`"$serviceMsi`""
+		"/qn"
+		"/l*v C:\Windows\Temp\portalinstallogfile.log"
+		"ALLUSERS=2"
+	)
+
+	$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
+	if($process.ExitCode -eq 0){
+		Write-Host "Repaired Service"
+	}else{
+		Write-Host "Process Failed to Repair Service"
+		$process
+		Write-Host "Arguments Were"
+		$arguments
+		throw "Failure running MSIEXEC"
+	}
+
 	$serviceDeployPath = "$Env:ProgramFiles\Cireson\Portal for Configuration Manager\Services"
 
 	# Update ConfigMgr Portal Hosting Service.exe.config, setting the BaseFolder to the new folder for website
