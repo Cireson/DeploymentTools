@@ -147,7 +147,7 @@ function Get-WebsiteDeploymentInfo($version){
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.18" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.19" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
@@ -203,7 +203,7 @@ function Setup-Website($currentValues){
 		Stop-Service $service -Force
 
 		Write-Host "Using Repair to Upgrade Using MSI"
-		$arguments = $arguments + "/fa"
+		$arguments = $arguments + "/i"
 	}catch{
         Write-Host "Service Not Found - Installing"
 		$arguments = $arguments + "/i"
