@@ -147,7 +147,7 @@ function Get-WebsiteDeploymentInfo($version){
 
 function Setup-Website($currentValues){
 	Write-Host "************************************************************************"
-	Write-Host "WebsiteSetup Version 1.0.17" -ForegroundColor Yellow
+	Write-Host "WebsiteSetup Version 1.0.18" -ForegroundColor Yellow
 
 	Write-Host "Current Values: $currentValues"
 
@@ -197,8 +197,12 @@ function Setup-Website($currentValues){
 
 	$arguments = @()
 	try{
-		Get-Service "Cireson ConfigMgr Portal Hosting Service" -ErrorAction Stop
-        Write-Host "Service Found - Repairing to Upgrade"
+		$service = Get-Service "Cireson ConfigMgr Portal Hosting Service" -ErrorAction Stop
+
+		Write-Host "Stopping Found Service"
+		Stop-Service $service -Force
+
+		Write-Host "Using Repair to Upgrade Using MSI"
 		$arguments = $arguments + "/fa"
 	}catch{
         Write-Host "Service Not Found - Installing"
