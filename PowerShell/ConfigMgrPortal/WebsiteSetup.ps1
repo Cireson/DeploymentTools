@@ -191,6 +191,13 @@ function Setup-Website($currentValues){
 	Copy-Item -Path $serviceSourcePath -Destination $serviceDeployPath
 
 	$serviceMsi = $serviceDeployPath + "\Cireson ConfigMgr Portal Service x64.msi"
+	
+	#Added by Seth
+	#Uninstall the application/service if found first
+	$app = Get-WmiObject -Class Win32_Product -Filter "Name = 'Cireson ConfigMgr Portal Service'"
+	if($app -ne $null) {
+		$app.Uninstall()
+	}
 
 	# run the msi
 	#msiexec.exe /i '$serviceMsi' /qn /l*v c:\Temp\logfile.log ALLUSERS=2    
@@ -202,7 +209,8 @@ function Setup-Website($currentValues){
 		"/l*v C:\Windows\Temp\portalinstallogfile.log"
 		"ALLUSERS=2"
 	)
-
+	
+	#this isn't needed anymore as the service is removed first
 	try{
 		$service = Get-Service "Cireson ConfigMgr Portal Hosting Service" -ErrorAction Stop
 
