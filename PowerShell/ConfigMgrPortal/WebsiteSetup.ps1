@@ -205,12 +205,12 @@ function Setup-Website($currentValues){
 	}
 
 	#remove the service to avoid version issues
+	Write-Host "Attempting to Uninstall the Service"
 	$arguments = @(
 		"/x"
 		"`"$serviceMsi`""
 		"/qn"
 		"/l*v C:\Windows\Temp\portalinstallogfile.log"
-		"ALLUSERS=2"
 	)
 
 	$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
