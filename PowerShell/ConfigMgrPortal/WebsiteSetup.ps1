@@ -194,9 +194,11 @@ function Setup-Website($currentValues){
 	
 	#Added by Seth
 	#Uninstall the application/service if found first
+	Write-Host "Attempting to remove service using WMI"
 	$app = Get-WmiObject -Class Win32_Product -Filter "Name = 'Cireson ConfigMgr Portal Service'"
 	if($app -ne $null) {
 		$app.Uninstall()
+		Write-Host "Removed service with WMI."
 	}
 
 	# run the msi
