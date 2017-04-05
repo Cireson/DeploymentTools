@@ -195,14 +195,6 @@ function Setup-Website($currentValues){
 	# run the msi
 	#msiexec.exe /i '$serviceMsi' /qn /l*v c:\Temp\logfile.log ALLUSERS=2    
 
-	$arguments = @(
-		"/i"
-		"`"$serviceMsi`""
-		"/qn"
-		"/l*v C:\Windows\Temp\portalinstallogfile.log"
-		"ALLUSERS=2"
-	)
-
 	try{
 		$service = Get-Service "Cireson ConfigMgr Portal Hosting Service" -ErrorAction Stop
 
@@ -211,7 +203,36 @@ function Setup-Website($currentValues){
 	}catch{
 		Write-Host "Service Not Found"
 	}
+
+	#remove the service to avoid version issues
+	$arguments = @(
+		"/x"
+		"`"$serviceMsi`""
+		"/qn"
+		"/l*v C:\Windows\Temp\portalinstallogfile.log"
+		"ALLUSERS=2"
+	)
+
+	$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
+	if($process.ExitCode -eq 0){
+		Write-Host "Uninstalled Service"
+	}else{
+		Write-Host "Process Failed to Uninstall Service"
+		$process
+		Write-Host "Arguments Were"
+		$arguments
+		throw "Failure running MSIEXEC"
+	}
 	
+	#reinstall the service
+	$arguments = @(
+		"/i"
+		"`"$serviceMsi`""
+		"/qn"
+		"/l*v C:\Windows\Temp\portalinstallogfile.log"
+		"ALLUSERS=2"
+	)
+
 	$process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
 	if($process.ExitCode -eq 0){
 		Write-Host "Installed Service"
