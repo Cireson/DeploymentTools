@@ -54,9 +54,9 @@ function Start-Deployment($agentPowerShellLocation, $powershellDirectoryName, $d
 	}
 
 	$deploymentScripts = @(
-		[System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/ConfigMgrPortal/WebsiteSetup.ps1"
-		[System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/Utility.ps1"
-		[System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/master/PowerShell/CommonDeployment.ps1"
+		[System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/sjc-dev/PowerShell/ConfigMgrPortal/WebsiteSetup.ps1"
+		[System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/sjc-dev/PowerShell/Utility.ps1"
+		[System.Uri]"https://raw.githubusercontent.com/Cireson/DeploymentTools/sjc-dev/PowerShell/CommonDeployment.ps1"
 	)
 
 	Get-DeploymentScripts $agentPowerShellLocation $deploymentScripts
