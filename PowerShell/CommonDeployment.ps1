@@ -403,7 +403,7 @@ function Copy-NuGets($resourceGroupName, $storageAccountName, $productRoot, $tem
 
 			$platformHostCpexData = Get-InstallableCpexDirectory
 			Write-Output "Remove All Files From $platformHostCpexData"	
-			Remove-Item -Path "$platformHostCpexData\*.*" -recurse -force 
+			Remove-Item -Path "$platformHostCpexData\*.*" -recurse -force -ErrorAction SilentlyContinue
 			
 			Write-Output "Download $onFileName from Azure Storage"
 			$file = "$platformHostCpexData\$onFileName"
