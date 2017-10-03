@@ -202,7 +202,7 @@ function Download-Platform($baseDirectory, $platformVersion, $targetDirectory){
         New-Item $platform -type directory
   
 		try{
-			$url = [System.Uri]"https://www.nuget.org/api/v2/package/Cireson.Platform.Core.Host/$platformVersion"
+			$url = [System.Uri]"https://cireson.myget.org/F/development/api/v2/package/Cireson.Platform.Core.Host/$platformVersion"
 			Write-Output "Url: $url"
   
 			$file = "$platform\platform.zip"
